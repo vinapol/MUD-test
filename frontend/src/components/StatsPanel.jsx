@@ -170,14 +170,10 @@ export function StatsPanel({ player, onSendCommand }) {
               const totalVal = player.total_stats?.[stat.key] || 0;
               const diff = totalVal - baseVal;
               return (
-                <div key={stat.key} className="flex justify-between items-center group/stat relative">
+                <div key={stat.key} className="flex justify-between items-center py-1.5 border-b border-[rgba(255,255,255,0.02)]" title={stat.desc} style={{ cursor: 'help' }}>
                   <div className="flex flex-col">
                     <span className="text-xs font-semibold text-slate-300">
                       {stat.icon} {stat.name}
-                    </span>
-                    {/* Tooltip on hover */}
-                    <span className="hidden group-hover/stat:block absolute left-0 bottom-full mb-1.5 p-1.5 rounded bg-[#0d1017] border border-[var(--border-color)] text-[9px] w-48 text-[var(--color-text)] z-20 pointer-events-none">
-                      {stat.desc}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">

@@ -10,11 +10,20 @@ export function ConsoleLog({ logs }) {
     }
   }, [logs]);
 
+  const formatBoldText = (textLine) => {
+    const parts = textLine.split('**');
+    return parts.map((part, i) => {
+      if (i % 2 === 1) {
+        return <strong key={i} className="font-extrabold text-white">{part}</strong>;
+      }
+      return part;
+    });
+  };
+
   const renderLogText = (text) => {
-    // Return paragraphs split by newlines for help menu or multiline logs
     return text.split('\n').map((line, idx) => (
       <div key={idx} className="min-h-[1.2rem]">
-        {line}
+        {formatBoldText(line)}
       </div>
     ));
   };
