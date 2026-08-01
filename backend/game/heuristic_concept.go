@@ -281,14 +281,17 @@ func EffectLabel(skillType string, power int) string {
 }
 
 func startingInventory(className string, rarityScore int) []Item {
-	// Unique/legendary starters must outclass rare mob gear (~+20).
-	weaponPower := 12 + rarityScore*7 // common 19 … unique 47
-	armorPower := 5 + rarityScore*2   // common 7 … unique 15
+	// Starters may be strong, but "unique" rarity is reserved for awakened baptisms.
+	if rarityScore > 4 {
+		rarityScore = 4 // legendary max for starting gear
+	}
+	weaponPower := 12 + rarityScore*7 // common 19 … legendary 40
+	armorPower := 5 + rarityScore*2   // common 7 … legendary 13
 	return []Item{
 		{
 			ID:          "start_weapon",
 			Name:        fmt.Sprintf("Arme de %s", className),
-			Description: "Équipement de départ adapté à votre voie.",
+			Description: fmt.Sprintf("Lame de départ de la voie %s — pas encore éveillée (commande : eveil).", className),
 			Type:        "weapon",
 			Rarity:      rarityFromScore(rarityScore).Name,
 			Power:       weaponPower,

@@ -36,10 +36,16 @@ type Engine struct {
 	RestSites []RestSite
 	Parties   *PartyManager
 
+	// Server-wide unique name registry (class + baptized weapons)
+	uniqueIndex map[string]UniqueClaim
+	uniqMu      sync.Mutex
+
 	// Adapters for LLM operations (to prevent circular imports)
 	GenerateContent          func(conceptType string, prompt string) (interface{}, error)
 	GenerateCharacterConcept func(customClass, customRace string, customSkills []string) (interface{}, error)
 	GenerateEvolution        func(stats Attributes, class, race string, level int, existingSkills []string) (interface{}, error)
+	GenerateWeaponAwaken     func(weapon Item, fromRank, toRank string) (*AwakenQuest, error)
+	GenerateUniqueWeaponName func(weapon Item) (UniqueWeaponBaptism, error)
 }
 
 // NewEngine initializes the game engine and loads the JSON database.
@@ -51,6 +57,7 @@ func NewEngine(dbPath string) *Engine {
 		SpawnConfigs: make(map[string]RoomSpawnConfig),
 		Market:       &Market{},
 		Parties:      newPartyManager(),
+		uniqueIndex:  make(map[string]UniqueClaim),
 	}
 	e.initWorld()
 	e.registerKenomaSpawnTables()
@@ -60,6 +67,7 @@ func NewEngine(dbPath string) *Engine {
 		e.Market.Listings = listings
 	}
 	e.seedShopListingsIfEmpty()
+	e.RebuildUniqueRegistry()
 	return e
 }
 
@@ -574,6 +582,9 @@ func (e *Engine) handleAuthSuccess(tempPlayer *Player, acc *Account) {
 		tempPlayer.Mu.Unlock()
 		tempPlayer.EnsureDefaultEquipment()
 		tempPlayer.RecalculateStats()
+		if n := e.RelinkPlayerUniqueWeaponNames(tempPlayer); n > 0 {
+			log.Printf("relinked %d unique weapon name(s) for %s", n, tempPlayer.ID)
+		}
 		e.DB.SavePlayer(tempPlayer)
 	} else {
 		// Placeholder player details in-place

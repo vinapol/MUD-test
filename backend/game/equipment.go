@@ -8,7 +8,7 @@ import (
 
 // FindInventoryItem returns a pointer to an inventory item by id or name (case-insensitive).
 func (p *Player) FindInventoryItem(query string) *Item {
-	q := strings.ToLower(strings.TrimSpace(query))
+	q := strings.ToLower(strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(query), "#")))
 	if q == "" {
 		return nil
 	}
@@ -77,6 +77,7 @@ func (p *Player) ArmorPower() int {
 func (p *Player) EnsureDefaultEquipment() {
 	p.Mu.Lock()
 	defer p.Mu.Unlock()
+	p.SanitizeUnbaptizedUniques()
 	p.ensureInventoryIDsLocked()
 	if p.EquippedWeapon == "" {
 		for _, it := range p.Inventory {

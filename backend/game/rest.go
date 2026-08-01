@@ -130,6 +130,7 @@ func (e *Engine) executeRepos(player *Player) {
 
 	e.DB.SavePlayer(player)
 	e.BroadcastPlayerState(player)
+	e.trackWeaponAwakenProgress(player, "rest", 1, "")
 
 	parts := []string{fmt.Sprintf("Vous vous reposez à %s (−%d or).", site.Name, site.Cost)}
 	if hpRestored > 0 {

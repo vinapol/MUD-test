@@ -27,7 +27,7 @@ export function ShopModal({ open, onClose, shopState, onBuy, onSell }) {
   const shop = shopState?.shop;
   const canTrade = !!shop;
   const listings = shopState?.listings || [];
-  const inventory = (shopState?.inventory || []).filter((i) => !i.equipped);
+  const inventory = (shopState?.inventory || []).filter((i) => !i.equipped && !i.bound && String(i.rarity || '').toLowerCase() !== 'unique');
   const gold = shopState?.gold ?? 0;
   const loading = !shopState;
 
@@ -114,7 +114,7 @@ export function ShopModal({ open, onClose, shopState, onBuy, onSell }) {
                     Pour vendre : Caelum, Sol-Gravis, Vespera, Bastion ou Oasis.
                   </p>
                 ) : inventory.length === 0 ? (
-                  <p className="shop-modal__empty">Rien à vendre (équipé exclus).</p>
+                  <p className="shop-modal__empty">Rien à vendre (équipé / Unique exclus).</p>
                 ) : (
                   inventory.map((item) => (
                     <div key={item.id} className="shop-row">
