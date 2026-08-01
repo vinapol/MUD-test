@@ -1,0 +1,89 @@
+{
+  "players": {
+    "test_player": {
+      "id": "test_player",
+      "name": "Test Muted",
+      "race": {
+        "name": "Humain",
+        "description": "Un aventurier humain standard.",
+        "modifiers": {
+          "str": 1,
+          "agi": 0,
+          "int": 0,
+          "con": 1,
+          "spi": 0
+        },
+        "multipliers": {
+          "str": 1,
+          "agi": 1,
+          "int": 1,
+          "con": 1,
+          "spi": 1
+        },
+        "passive_name": "Persévérance",
+        "passive_desc": "Augmente légèrement la régénération naturelle."
+      },
+      "class": "Mage",
+      "class_rarity": "Common",
+      "level": 1,
+      "xp": 0,
+      "next_level": 100,
+      "hp": 106,
+      "max_hp": 106,
+      "mana": 194,
+      "max_mana": 194,
+      "gold": 30,
+      "base_stats": {
+        "str": 4,
+        "agi": 7,
+        "int": 14,
+        "con": 8,
+        "spi": 12
+      },
+      "total_stats": {
+        "str": 2,
+        "agi": 5,
+        "int": 19,
+        "con": 7,
+        "spi": 15
+      },
+      "class_multipliers": {
+        "str": 0.5,
+        "agi": 0.85,
+        "int": 1.4,
+        "con": 0.8,
+        "spi": 1.25
+      },
+      "stat_points": 0,
+      "inventory": [
+        {
+          "id": "m_staff",
+          "name": "Bâton d'Apprenti",
+          "description": "Un bâton en bois canalisant le mana.",
+          "type": "weapon",
+          "rarity": "common",
+          "power": 8,
+          "value": 10
+        }
+      ],
+      "skills": [
+        {
+          "name": "Fireball",
+          "description": "Projette une boule de feu magique basée sur l'Intelligence.",
+          "cost": 15,
+          "power": 25,
+          "type": "attack"
+        },
+        {
+          "name": "Heal",
+          "description": "Restaure vos points de vie en utilisant du mana (basé sur l'Esprit).",
+          "cost": 20,
+          "power": 35,
+          "type": "heal"
+        }
+      ],
+      "room_id": "town_square",
+      "evolution_history": []
+    }
+  }
+}

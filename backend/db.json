@@ -1,0 +1,228 @@
+{
+  "accounts": {
+    "p@kool": {
+      "username": "p@kool",
+      "password_hash": "$2a$10$lVnNv3ml3nakgRZHh1tD0uNZd7wz5hb/5RrNPEgmoql3gcR8NSyMm",
+      "character": {
+        "id": "p@kool",
+        "name": "Askeladd",
+        "race": {
+          "name": "Humain",
+          "description": "Un aventurier humain standard.",
+          "modifiers": {
+            "str": 1,
+            "agi": 0,
+            "int": 0,
+            "con": 1,
+            "spi": 0
+          },
+          "multipliers": {
+            "str": 1,
+            "agi": 1,
+            "int": 1,
+            "con": 1,
+            "spi": 1
+          },
+          "passive_name": "Persévérance",
+          "passive_desc": "Augmente légèrement la régénération naturelle."
+        },
+        "class": "Guerrier Recrue",
+        "class_rarity": "common",
+        "level": 1,
+        "xp": 0,
+        "next_level": 100,
+        "hp": 186,
+        "max_hp": 186,
+        "mana": 30,
+        "max_mana": 30,
+        "gold": 30,
+        "base_stats": {
+          "str": 12,
+          "agi": 8,
+          "int": 5,
+          "con": 13,
+          "spi": 7
+        },
+        "total_stats": {
+          "str": 17,
+          "agi": 1,
+          "int": 1,
+          "con": 17,
+          "spi": 1
+        },
+        "class_multipliers": {
+          "str": 1.35,
+          "agi": 0,
+          "int": 0,
+          "con": 1.25,
+          "spi": 0
+        },
+        "stat_points": 0,
+        "inventory": [
+          {
+            "id": "w_sword",
+            "name": "Épée Rouillée",
+            "description": "Une épée en fer émoussée.",
+            "type": "weapon",
+            "rarity": "common",
+            "power": 10,
+            "value": 5
+          },
+          {
+            "id": "w_shield",
+            "name": "Écu en Bois",
+            "description": "Un bouclier simple.",
+            "type": "armor",
+            "rarity": "common",
+            "power": 5,
+            "value": 5
+          }
+        ],
+        "skills": [
+          {
+            "name": "Attaque Rapide",
+            "description": "Un coup physique agile.",
+            "cost": 0,
+            "power": 12,
+            "type": "attack"
+          },
+          {
+            "name": "Parade",
+            "description": "Réduit les prochains dégâts reçus.",
+            "cost": 4,
+            "power": 8,
+            "type": "defense"
+          },
+          {
+            "name": "Soin Léger",
+            "description": "Restaure un peu de vie.",
+            "cost": 6,
+            "power": 15,
+            "type": "heal"
+          },
+          {
+            "name": "Trait Magique",
+            "description": "Projette une flèche d'énergie.",
+            "cost": 5,
+            "power": 14,
+            "type": "attack"
+          }
+        ],
+        "room_id": "town_square",
+        "evolution_history": []
+      }
+    },
+    "vinapol": {
+      "username": "vinapol",
+      "password_hash": "$2a$10$gY6MNNjGN9nDMLqRw0zyW.o0DhJuJ8bLYrFHfe4UKFG2/rqROP8.W",
+      "character": {
+        "id": "vinapol",
+        "name": "Azathot",
+        "race": {
+          "name": "Créature céleste",
+          "description": "Race divine forgée par le Concepteur.",
+          "modifiers": {
+            "str": 5,
+            "agi": 5,
+            "int": 5,
+            "con": 5,
+            "spi": 5
+          },
+          "multipliers": {
+            "str": 1.5,
+            "agi": 1.5,
+            "int": 1.5,
+            "con": 1.5,
+            "spi": 1.5
+          },
+          "passive_name": "Volonté Créatrice",
+          "passive_desc": "Régénération divine accrue."
+        },
+        "class": "Dieu du vide",
+        "class_rarity": "unique",
+        "level": 1,
+        "xp": 0,
+        "next_level": 100,
+        "hp": 458,
+        "max_hp": 458,
+        "mana": 530,
+        "max_mana": 530,
+        "gold": 30,
+        "base_stats": {
+          "str": 18,
+          "agi": 18,
+          "int": 18,
+          "con": 18,
+          "spi": 18
+        },
+        "total_stats": {
+          "str": 51,
+          "agi": 51,
+          "int": 51,
+          "con": 51,
+          "spi": 51
+        },
+        "class_multipliers": {
+          "str": 1.5,
+          "agi": 1.5,
+          "int": 1.5,
+          "con": 1.5,
+          "spi": 1.5
+        },
+        "stat_points": 0,
+        "inventory": [
+          {
+            "id": "",
+            "name": "Épée du Concepteur",
+            "description": "Forgée dans le code source.",
+            "type": "weapon",
+            "rarity": "unique",
+            "power": 25,
+            "value": 1000
+          },
+          {
+            "id": "",
+            "name": "Armure Céleste",
+            "description": "Tissée de fils de lumière divine.",
+            "type": "armor",
+            "rarity": "unique",
+            "power": 20,
+            "value": 1000
+          }
+        ],
+        "skills": [
+          {
+            "name": "Vole de compétence",
+            "description": "Sort unique insufflé par le Concepteur.",
+            "cost": 4,
+            "power": 25,
+            "type": "attack"
+          },
+          {
+            "name": "Gloutonie",
+            "description": "Sort unique insufflé par le Concepteur.",
+            "cost": 4,
+            "power": 25,
+            "type": "attack"
+          },
+          {
+            "name": "Anomie",
+            "description": "Sort unique insufflé par le Concepteur.",
+            "cost": 4,
+            "power": 25,
+            "type": "attack"
+          },
+          {
+            "name": "Dieu du vide",
+            "description": "Sort unique insufflé par le Concepteur.",
+            "cost": 4,
+            "power": 25,
+            "type": "attack"
+          }
+        ],
+        "room_id": "town_square",
+        "evolution_history": []
+      }
+    }
+  }
+}
