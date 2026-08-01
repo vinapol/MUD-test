@@ -21,10 +21,11 @@ type Account struct {
 
 // Database manages JSON file-based persistence for accounts.
 type Database struct {
-	Accounts map[string]*Account `json:"accounts"`
-	Market   []MarketListing     `json:"market,omitempty"`
-	FilePath string              `json:"-"`
-	mu       sync.Mutex          `json:"-"`
+	Accounts     map[string]*Account `json:"accounts"`
+	Market       []MarketListing     `json:"market,omitempty"`
+	UniqueClaims []UniqueClaim       `json:"unique_claims,omitempty"`
+	FilePath     string              `json:"-"`
+	mu           sync.Mutex          `json:"-"`
 }
 
 // NewDatabase loads or initializes the JSON file database.

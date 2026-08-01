@@ -114,6 +114,30 @@ func main() {
 		return res, nil
 	}
 
+	engine.GenerateWeaponAwaken = func(weapon game.Item, fromRank, toRank string) (*game.AwakenQuest, error) {
+		if !*llmCharacter {
+			return game.BuildHeuristicAwakenQuest(weapon), nil
+		}
+		q, err := ollamaClient.GenerateWeaponAwaken(weapon, fromRank, toRank)
+		if err != nil {
+			log.Printf("éveil arme LLM échoué, fallback heuristique: %v", err)
+			return game.BuildHeuristicAwakenQuest(weapon), nil
+		}
+		return game.NormalizeAwakenQuest(q, weapon), nil
+	}
+
+	engine.GenerateUniqueWeaponName = func(weapon game.Item) (game.UniqueWeaponBaptism, error) {
+		if !*llmCharacter {
+			return game.BuildHeuristicUniqueBaptism(weapon.Name, weapon.ID), nil
+		}
+		b, err := ollamaClient.GenerateUniqueWeaponName(weapon)
+		if err != nil {
+			log.Printf("baptême unique LLM échoué, fallback heuristique: %v", err)
+			return game.BuildHeuristicUniqueBaptism(weapon.Name, weapon.ID), nil
+		}
+		return game.NormalizeUniqueBaptism(b, weapon.Name, weapon.ID), nil
+	}
+
 	engine.StartSpawnCycle(15 * time.Second)
 
 	// HTTP Routes

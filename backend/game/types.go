@@ -61,15 +61,40 @@ type Skill struct {
 	Duration    int    `json:"duration"`      // turns for lasting effects
 }
 
+// AwakenQuest is a verifiable next-rank challenge for a weapon.
+type AwakenQuest struct {
+	Kind      string `json:"kind"`                 // kills | kills_rarity | gold_spend | materials | rest | combat_wins | unique_trial
+	Target    int    `json:"target"`
+	Progress  int    `json:"progress"`
+	MinRarity string `json:"min_rarity,omitempty"` // for kills_rarity
+	Lore      string `json:"lore"`
+	FromRank  string `json:"from_rank"`
+	ToRank    string `json:"to_rank"`
+	// unique_trial sub-goals (all required)
+	NeedLegendKills int `json:"need_legend_kills,omitempty"`
+	ProgLegendKills int `json:"prog_legend_kills,omitempty"`
+	NeedGold        int `json:"need_gold,omitempty"`
+	ProgGold        int `json:"prog_gold,omitempty"`
+	NeedMaterials   int `json:"need_materials,omitempty"`
+	ProgMaterials   int `json:"prog_materials,omitempty"`
+	NeedRest        int `json:"need_rest,omitempty"`
+	ProgRest        int `json:"prog_rest,omitempty"`
+	NeedWins        int `json:"need_wins,omitempty"`
+	ProgWins        int `json:"prog_wins,omitempty"`
+}
+
 // Item represents a game item, which can be procedurally generated.
 type Item struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	Type        string `json:"type"`   // "weapon", "armor", "potion"
-	Rarity      string `json:"rarity"` // "common", "uncommon", "rare", "epic", "legendary"
-	Power       int    `json:"power"`
-	Value       int    `json:"value"`
+	ID          string       `json:"id"`
+	Name        string       `json:"name"`
+	Description string       `json:"description"`
+	Type        string       `json:"type"`   // "weapon", "armor", "potion"
+	Rarity      string       `json:"rarity"` // "common" … "legendary" | "unique"
+	Power       int          `json:"power"`
+	Value       int          `json:"value"`
+	Bound       bool         `json:"bound,omitempty"`        // soulbound (unique weapons)
+	Title       string       `json:"title,omitempty"`        // unique epithet (e.g. "dague du chaos")
+	AwakenQuest *AwakenQuest `json:"awaken_quest,omitempty"` // next rank challenge
 }
 
 // NPC represents a non-player character/monster, which can be procedurally generated.

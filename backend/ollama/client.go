@@ -287,6 +287,95 @@ JSON UNIQUEMENT:
 	return evo, nil
 }
 
+// GenerateWeaponAwaken asks Ollama to pick a next-rank condition kind and lore.
+func (c *Client) GenerateWeaponAwaken(weapon game.Item, fromRank, toRank string) (*game.AwakenQuest, error) {
+	prompt := fmt.Sprintf(`%s
+
+Tu scelles la prochaine épreuve d'éveil d'une arme de Kenoma.
+Arme: "%s" (%s) — description: %s
+Rang actuel: %s → prochain: %s
+Puissance: %d
+
+%s
+
+Règles:
+- Choisir UN kind dans le catalogue.
+- lore: 1 phrase immersive FR (Aéthel / Vide / forges / marchés).
+- target: entier ambitieux (le moteur remontera au minimum du palier — ne pas viser trop bas).
+- Si kind=kills_rarity: min_rarity parmi common|uncommon|rare|epic|legendary (au moins le rang actuel).
+
+JSON UNIQUEMENT:
+{"kind":"kills_rarity","target":6,"min_rarity":"uncommon","lore":"La lame exige le sang d'échos digne des Marches."}`,
+		game.KenomaUniversePrompt(),
+		weapon.Name, weapon.Rarity, weapon.Description,
+		fromRank, toRank, weapon.Power,
+		game.AwakenKindCatalogPrompt(),
+	)
+
+	respBody, err := c.requestOllamaWithOptions(prompt, map[string]interface{}{
+		"temperature":    0.5,
+		"num_predict":    280,
+		"num_ctx":        3072,
+		"repeat_penalty": 1.05,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var q game.AwakenQuest
+	if err := json.Unmarshal([]byte(respBody), &q); err != nil {
+		return nil, fmt.Errorf("JSON éveil arme invalide: %v (Brut: %s)", err, respBody)
+	}
+	q.FromRank = fromRank
+	q.ToRank = toRank
+	return &q, nil
+}
+
+// GenerateUniqueWeaponName asks Ollama for a proper unique name + title.
+func (c *Client) GenerateUniqueWeaponName(weapon game.Item) (game.UniqueWeaponBaptism, error) {
+	prompt := fmt.Sprintf(`%s
+
+Baptise une arme Unique de Kenoma (nom propre + titre) EN CONTINUITÉ avec son identité précédente.
+Ancien nom: "%s"
+Description: %s
+Puissance: %d
+
+Règles STRICTES:
+- Le baptême doit prolonger l'ancien nom (mêmes thèmes / mots-clés). Ex: "Arme de Dieu du vide" → {"name":"Azathot","title":"lame du Dieu du vide"}.
+- INTERDIT d'inventer un thème sans lien (pas de Skia/or/chaos si l'arme était du Vide/Dieu).
+- name: 1-2 mots propres FR, écho mythique du lignage (Azathot/Nihil pour le Vide, Aéthel pour la lumière…).
+- title: minuscules, type d'arme + lignage (ex: "lame du Dieu du vide", "épée d'Aurelia-Secundus").
+- Affichage final = "name - title".
+- Pas de guillemets, pas d'emoji, pas du mot Unique.
+
+JSON UNIQUEMENT:
+{"name":"Azathot","title":"lame du Dieu du vide"}`,
+		game.KenomaUniversePrompt(),
+		weapon.Name, weapon.Description, weapon.Power,
+	)
+
+	respBody, err := c.requestOllamaWithOptions(prompt, map[string]interface{}{
+		"temperature":    0.7,
+		"num_predict":    140,
+		"num_ctx":        2048,
+		"repeat_penalty": 1.1,
+	})
+	if err != nil {
+		return game.UniqueWeaponBaptism{}, err
+	}
+
+	var payload game.UniqueWeaponBaptism
+	if err := json.Unmarshal([]byte(respBody), &payload); err != nil {
+		return game.UniqueWeaponBaptism{}, fmt.Errorf("JSON baptême unique invalide: %v (Brut: %s)", err, respBody)
+	}
+	payload.Name = strings.TrimSpace(strings.Trim(payload.Name, "«»\"'"))
+	payload.Title = strings.TrimSpace(strings.Trim(payload.Title, "«»\"'"))
+	if payload.Name == "" && payload.Title == "" {
+		return game.UniqueWeaponBaptism{}, fmt.Errorf("baptême unique vide")
+	}
+	return payload, nil
+}
+
 func (c *Client) requestOllama(prompt string) (string, error) {
 	return c.requestOllamaWithOptions(prompt, map[string]interface{}{
 		"temperature": 0.4,

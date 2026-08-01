@@ -13,10 +13,31 @@ function rarityClass(rarity) {
     case 'uncommon': return 'equip-rarity--uncommon';
     case 'rare': return 'equip-rarity--rare';
     case 'epic': return 'equip-rarity--epic';
-    case 'legendary':
-    case 'unique': return 'equip-rarity--legendary';
+    case 'legendary': return 'equip-rarity--legendary';
+    case 'unique': return 'equip-rarity--unique';
     default: return 'equip-rarity--common';
   }
+}
+
+function awakenKindLabel(q) {
+  if (!q) return '';
+  switch (q.kind) {
+    case 'unique_trial': return 'Épreuve Unique';
+    case 'kills_rarity': return `Tuer (${q.min_rarity || '?'}+)`;
+    case 'gold_spend': return 'Dépenser or';
+    case 'materials': return 'Sacrifier matériaux';
+    case 'rest': return 'Repos auberge';
+    case 'combat_wins': return 'Victoires';
+    default: return 'Tuer ennemis';
+  }
+}
+
+function awakenProgressLine(q) {
+  if (!q) return '';
+  if (q.kind === 'unique_trial') {
+    return `Épreuve ${q.progress || 0}/5 · lég. ${q.prog_legend_kills || 0}/${q.need_legend_kills || 0} · or ${q.prog_gold || 0}/${q.need_gold || 0} · mat. ${q.prog_materials || 0}/${q.need_materials || 0} · repos ${q.prog_rest || 0}/${q.need_rest || 0} · victoires ${q.prog_wins || 0}/${q.need_wins || 0}`;
+  }
+  return `${awakenKindLabel(q)} — ${q.progress}/${q.target}`;
 }
 
 function SlotCard({
@@ -49,6 +70,7 @@ function SlotCard({
           <p className="equip-slot__desc">{item.description || '—'}</p>
           <div className="equip-slot__foot">
             <span className="equip-slot__badge">+{item.power} {powerLabel}</span>
+            <span className="equip-slot__rarity">{item.rarity || 'common'}</span>
             <button type="button" className="equip-slot__btn" onClick={onUnequip}>
               Retirer
             </button>
@@ -88,14 +110,28 @@ function ItemRow({ item, icon: Icon, powerSuffix, equipped, actionLabel, onEquip
       )}
       <span className="equip-row__icon"><Icon size={14} /></span>
       <span className="equip-row__body">
-        <span className="equip-row__name">{item.name}</span>
+        <span className="equip-row__name">
+          {item.name}
+          {item.bound || String(item.rarity || '').toLowerCase() === 'unique' ? (
+            <em className="equip-row__bound"> liée</em>
+          ) : null}
+        </span>
+        {item.title && (
+          <span className="equip-row__title">{item.title}</span>
+        )}
         {item.description && (
           <span className="equip-row__desc">{item.description}</span>
+        )}
+        {item.awaken_quest && (
+          <span className="equip-row__awaken">
+            Éveil {awakenProgressLine(item.awaken_quest)}
+          </span>
         )}
         <div className="equip-row__tip" role="tooltip">
           <strong>{item.name}</strong>
           {item.description && <p>{item.description}</p>}
-          <span>+{item.power} {powerSuffix}</span>
+          <span>+{item.power} {powerSuffix} · {item.rarity || 'common'}</span>
+          {item.awaken_quest?.lore && <p>{item.awaken_quest.lore}</p>}
         </div>
       </span>
       <span className="equip-row__meta">
@@ -244,6 +280,46 @@ export function EquipmentModal({
             onUnequip={() => unequip('armure')}
           />
         </div>
+
+        {weapon && String(weapon.rarity || '').toLowerCase() !== 'unique' && (
+          <div className="equip-awaken">
+            <div className="equip-awaken__head">
+              <Sparkles size={14} />
+              <span>Éveil d&apos;arme</span>
+              <b>{weapon.rarity || 'common'} → …</b>
+            </div>
+            {weapon.awaken_quest ? (
+              <>
+                <p className="equip-awaken__lore">{weapon.awaken_quest.lore}</p>
+                <p className="equip-awaken__prog">
+                  {awakenProgressLine(weapon.awaken_quest)}
+                  {(weapon.awaken_quest.kind === 'unique_trial'
+                    ? weapon.awaken_quest.progress >= 5
+                    : weapon.awaken_quest.progress >= weapon.awaken_quest.target)
+                    ? ' · prêt' : ''}
+                </p>
+              </>
+            ) : (
+              <p className="equip-awaken__lore">
+                Aucune épreuve pour l&apos;instant. Cliquez ci-dessous (ou tapez <code>eveil</code>) :
+                l&apos;arbitre scelle la prochaine condition (kills, or, repos, matériaux…).
+              </p>
+            )}
+            <button
+              type="button"
+              className="equip-awaken__btn"
+              onClick={() => onSendCommand?.(weapon.id ? `eveil #${weapon.id}` : 'eveil')}
+            >
+              {weapon.awaken_quest?.progress >= weapon.awaken_quest?.target ? 'Accomplir l\'éveil' : 'Éveiller / statut'}
+            </button>
+          </div>
+        )}
+        {weapon && String(weapon.rarity || '').toLowerCase() === 'unique' && (
+          <p className="equip-awaken equip-awaken--max">
+            <Sparkles size={14} />
+            Unique{weapon.title ? ` — ${weapon.title}` : ''} · liée, non revendable.
+          </p>
+        )}
 
         <p className="equip-modal__hint">
           Cliquez <strong>Équiper</strong>, ou glissez via la poignée. Survolez un texte tronqué pour la description complète.

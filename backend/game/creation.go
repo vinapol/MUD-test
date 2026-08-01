@@ -420,7 +420,36 @@ func (e *Engine) HandleCreateCharacter(player *Player, payload CreateCharacterPa
 		}
 		player.Mu.Unlock()
 
+		// Unique class names are exclusive server-wide.
+		if classSuccess && IsUniqueClassRarity(player.ClassRarity) {
+			freeName, err := e.EnsureFreeUniqueClassName(player.Class, player.ID, player.Name)
+			if err != nil {
+				player.Mu.Lock()
+				template := ClassTemplates[classFallbackKey]
+				player.Class = template.Class
+				player.ClassRarity = template.ClassRarity
+				player.BaseStats = template.BaseStats
+				player.ClassMultipliers = template.ClassMultipliers
+				player.Inventory = append([]Item{}, template.Inventory...)
+				player.Mu.Unlock()
+				classSuccess = false
+				player.SendMessage("log", map[string]string{
+					"text": fmt.Sprintf("Le nom Unique « %s » est déjà pris sur ce serveur — voie rétrogradée.", concept.Class.Name),
+					"type": "error",
+				})
+			} else if freeName != concept.Class.Name {
+				player.Mu.Lock()
+				player.Class = freeName
+				player.Mu.Unlock()
+				player.SendMessage("log", map[string]string{
+					"text": fmt.Sprintf("« %s » était déjà Unique — votre voie s'appelle désormais « %s ».", concept.Class.Name, freeName),
+					"type": "system",
+				})
+			}
+		}
+
 		player.EnsureDefaultEquipment()
+		e.RelinkPlayerUniqueWeaponNames(player)
 		player.RecalculateStats()
 
 		// Add to town square

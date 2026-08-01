@@ -137,6 +137,7 @@ func (e *Engine) executeAcheter(player *Player, args string) {
 	e.DB.SavePlayer(player)
 	e.BroadcastPlayerState(player)
 	e.sendShopState(player)
+	e.trackWeaponAwakenProgress(player, "gold", buy, "")
 
 	player.SendMessage("log", map[string]string{
 		"text": fmt.Sprintf("Acheté à %s : %s pour %d or (offre locale ×%d).", shop.Name, item.Name, buy, supply),
@@ -188,6 +189,14 @@ func (e *Engine) executeVendre(player *Player, args string) {
 		return
 	}
 	it := player.Inventory[idx]
+	if ItemIsBound(it) {
+		player.Mu.Unlock()
+		player.SendMessage("log", map[string]string{
+			"text": fmt.Sprintf("%s est Unique / liée — impossible à vendre.", it.Name),
+			"type": "error",
+		})
+		return
+	}
 	if it.ID == player.EquippedWeapon || it.ID == player.EquippedArmor {
 		player.Mu.Unlock()
 		player.SendMessage("log", map[string]string{

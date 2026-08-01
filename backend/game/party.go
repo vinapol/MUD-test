@@ -726,6 +726,14 @@ func (e *Engine) executeDonnerObjet(player *Player, args string) {
 		})
 		return
 	}
+	if ItemIsBound(*it) {
+		player.Mu.Unlock()
+		player.SendMessage("log", map[string]string{
+			"text": fmt.Sprintf("%s est Unique / liée — impossible à donner.", it.Name),
+			"type": "error",
+		})
+		return
+	}
 	gift := *it
 	newInv := make([]Item, 0, len(player.Inventory)-1)
 	removed := false

@@ -202,20 +202,9 @@ func (m *Market) FindByName(query string) (MarketListing, bool) {
 }
 
 func (s *Shop) Accepts(it Item) bool {
-	if len(s.AcceptTypes) == 0 {
-		return true
-	}
-	t := strings.ToLower(it.Type)
-	for _, a := range s.AcceptTypes {
-		if strings.ToLower(a) == t {
-			return true
-		}
-	}
-	// salvage also takes generic loot aliases
-	if s.Kind == "salvage" && (t == "material" || t == "loot" || t == "") {
-		return true
-	}
-	return false
+	// All stalls buy any item type; stock remains local to the shop.
+	_ = it
+	return true
 }
 
 func (e *Engine) ShopForRoom(roomID string) *Shop {
@@ -307,6 +296,9 @@ func (e *Engine) sendShopState(player *Player) {
 			"type": it.Type, "rarity": it.Rarity, "power": it.Power,
 			"value": BaseValue(it), "buy_price": buy, "sell_price": sell, "supply": supply,
 			"equipped": it.ID == player.EquippedWeapon || it.ID == player.EquippedArmor,
+			"bound":    ItemIsBound(it),
+			"title":    it.Title,
+			"awaken_quest": it.AwakenQuest,
 		}
 		inv = append(inv, row)
 	}
@@ -353,8 +345,7 @@ func (e *Engine) registerShops() {
 		{
 			ID: "enclume_publique", RoomID: "sol_gravis", Kind: "forge",
 			Name: "Enclume Publique",
-			Description: "Comptoir de la Guilde des Maîtres-Forgérons. Armes et armures au cours du marché.",
-			AcceptTypes: []string{"weapon", "armor"},
+			Description: "Comptoir de la Guilde des Maîtres-Forgérons. Achète tout ce qu'on lui apporte, stock local.",
 			Catalog: []Item{
 				seedItem("forge_blade", "Lame d'Apprenti", "Acier de Sol-Gravis, trempe correcte.", "weapon", "uncommon", 14, 40),
 				seedItem("forge_hammer", "Marteau de Forge Léger", "Bon à casser des casques.", "weapon", "uncommon", 16, 48),
@@ -375,8 +366,7 @@ func (e *Engine) registerShops() {
 		{
 			ID: "poste_recup", RoomID: "bastion_gris", Kind: "salvage",
 			Name: "Poste de Récupération",
-			Description: "Les Veilleurs rachètent trophées et matériaux pour réarmer la Muraille. Prix selon l'offre de cet étal.",
-			AcceptTypes: []string{"material", "loot", "weapon", "armor", "potion"},
+			Description: "Les Veilleurs rachètent tout trophée utile pour réarmer la Muraille. Prix selon l'offre de cet étal.",
 			Catalog: []Item{
 				seedItem("salv_kit", "Trousse de Campagne", "Bandages et huile de lame.", "potion", "common", 25, 16),
 				seedItem("salv_spear", "Lance de Sentinelle", "Fer de récupération remis en état.", "weapon", "common", 11, 26),
@@ -385,8 +375,7 @@ func (e *Engine) registerShops() {
 		{
 			ID: "brocante_coeur", RoomID: "oasis_ebene", Kind: "salvage",
 			Name: "Brocante du Cœur",
-			Description: "Parias et cartels : on revend sans poser de questions. Le cours suit le marché — souvent bas.",
-			AcceptTypes: []string{"material", "loot", "weapon", "armor", "potion"},
+			Description: "Parias et cartels : on revend sans poser de questions. Tout passe — le cours reste local.",
 			Catalog: []Item{
 				seedItem("ebon_dust", "Poussière d'Ébène", "Résidu du monolithe — matière première.", "material", "uncommon", 0, 20),
 				seedItem("ebon_dagger", "Dague de Paria", "Lame noire ébréchée.", "weapon", "uncommon", 13, 34),

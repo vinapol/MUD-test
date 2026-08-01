@@ -106,6 +106,7 @@ func isReservedCommand(cmd string) bool {
 		"use", "utiliser", "boire",
 		"allocate", "attribuer", "stats+",
 		"evolve", "evoluer",
+		"eveil", "éveil", "eveiller", "éveiller", "awaken",
 		"help", "h", "aide", "?",
 		"lore", "kenoma", "histoire", "chronique",
 		"carte", "map", "monde",
@@ -167,6 +168,8 @@ func (e *Engine) dispatchCommand(player *Player, cmd, args, commandLine string) 
 		e.executeAllocate(player, args)
 	case "evolve", "evoluer":
 		e.executeEvolve(player)
+	case "eveil", "éveil", "eveiller", "éveiller", "awaken":
+		e.executeEveil(player, args)
 	case "help", "h", "aide", "?":
 		e.executeHelp(player)
 	case "lore", "kenoma", "histoire", "chronique":
@@ -1536,6 +1539,7 @@ func (e *Engine) handleNpcDeath(player *Player, room *Room, npc *NPC) {
 			"type": "loot",
 		})
 		p.AddXP(x, e)
+		e.trackWeaponAwakenProgress(p, "kill", 1, npc.Rarity)
 		e.DB.SavePlayer(p)
 		e.BroadcastPlayerState(p)
 	}
@@ -1842,7 +1846,35 @@ func (e *Engine) executeEvolve(player *Player) {
 
 		player.Mu.Lock()
 		oldClass := player.Class
-		player.Class = evo.NewClassName
+		oldRarity := player.ClassRarity
+		ownerID := player.ID
+		ownerName := player.Name
+		newClass := evo.NewClassName
+		player.Mu.Unlock()
+
+		if IsUniqueClassRarity(oldRarity) {
+			freeName, err := e.EnsureFreeUniqueClassName(newClass, ownerID, ownerName)
+			if err != nil {
+				player.SendMessage("log", map[string]string{
+					"text": fmt.Sprintf("Évolution bloquée : aucun nom Unique libre (%v).", err),
+					"type": "error",
+				})
+				return
+			}
+			if freeName != newClass {
+				player.SendMessage("log", map[string]string{
+					"text": fmt.Sprintf("« %s » déjà porté — évolution sous le nom exclusif « %s ».", newClass, freeName),
+					"type": "system",
+				})
+			}
+			if !strings.EqualFold(oldClass, freeName) {
+				e.ReleaseUnique(UniqueKindClass, oldClass, ownerID)
+			}
+			newClass = freeName
+		}
+
+		player.Mu.Lock()
+		player.Class = newClass
 		player.Skills = append(player.Skills, evo.Skills...)
 
 		addedSkillNames := []string{}
@@ -1853,14 +1885,14 @@ func (e *Engine) executeEvolve(player *Player) {
 		player.EvolutionHistory = append(player.EvolutionHistory, EvolutionHistory{
 			Level:       level,
 			OldClass:    oldClass,
-			NewClass:    evo.NewClassName,
+			NewClass:    newClass,
 			Reason:      evo.Description,
 			AddedSkills: addedSkillNames,
 		})
 		player.Mu.Unlock()
 
 		player.SendMessage("log", map[string]string{
-			"text": fmt.Sprintf("🌟 FÉLICITATIONS ! Votre classe évolue en : **%s** !\nDescription : %s", evo.NewClassName, evo.Description),
+			"text": fmt.Sprintf("🌟 FÉLICITATIONS ! Votre classe évolue en : **%s** !\nDescription : %s", newClass, evo.Description),
 			"type": "level_up",
 		})
 
@@ -1901,6 +1933,7 @@ func (e *Engine) executeHelp(player *Player) {
 - utiliser <potion> : Consommer une potion.
 - allocate <str|agi|int|con|spi> <n> : Dépenser des points de stats.
 - evolve : Évolution de classe (niv. 5+, IA).
+- eveil / éveil [arme] : Mission d'éveil (common→unique). Unique = Épreuve dure multi-objectifs + nom exclusif serveur.
 - generate monster|item <description> : Invoquer une création ancrée dans Kenoma.
 - Les zones dangereuses se re-peuplent seules (pression du Vide, ~1–2 min après une mort).`
 
@@ -2245,6 +2278,8 @@ func (e *Engine) executeDevCommand(player *Player, cmd string, args string) {
 
 // executeResetChar removes a character profile from database and redirects the player to creation.
 func (e *Engine) executeResetChar(player *Player) {
+	e.ReleaseAllUniquesOwnedBy(player.ID)
+
 	e.DB.mu.Lock()
 	acc, ok := e.DB.Accounts[player.ID]
 	if ok {
