@@ -40,7 +40,7 @@ export function RoomPanel({ room, onSendCommand }) {
         <span className="text-[10px] font-mono text-[var(--color-muted)] font-bold uppercase">{room.id}</span>
       </div>
 
-      <div className="flex-1 p-4 overflow-y-auto space-y-4 font-mono text-sm">
+      <div className="flex-1 p-3 overflow-y-auto space-y-2.5 font-mono text-sm">
         {/* Room Description */}
         <div className="space-y-1.5">
           <h2 className="text-base font-bold text-white leading-tight">{room.name}</h2>
@@ -112,7 +112,7 @@ export function RoomPanel({ room, onSendCommand }) {
         </div>
 
         {/* Players, Items, Monsters Lists */}
-        <div className="border-t border-[rgba(255,255,255,0.05)] pt-3 space-y-3">
+        <div className="border-t border-[rgba(255,255,255,0.05)] pt-2.5 space-y-2">
           {/* Other players */}
           {room.players && room.players.length > 1 && (
             <div className="space-y-1">

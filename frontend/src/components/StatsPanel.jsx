@@ -62,7 +62,7 @@ export function StatsPanel({ player, onSendCommand }) {
         <span className="text-xs uppercase tracking-wider font-semibold text-[var(--color-muted)] font-mono">Fiche Aventurier D&D</span>
       </div>
 
-      <div className="flex-1 p-4 overflow-y-auto space-y-4 font-mono text-sm">
+      <div className="flex-1 p-3 overflow-y-auto space-y-2.5 font-mono text-sm">
         {/* Character Core Info */}
         <div className="border border-[rgba(255,255,255,0.05)] rounded-lg p-3 bg-[rgba(0,0,0,0.2)] flex justify-between items-center">
           <div className="space-y-0.5">
@@ -84,7 +84,7 @@ export function StatsPanel({ player, onSendCommand }) {
 
         {/* Dynamic Race Passive Info */}
         {player.race?.passive_name && (
-          <div className="border border-[rgba(139,92,246,0.15)] rounded-lg p-2.5 bg-[rgba(139,92,246,0.02)] text-xs">
+          <div className="border border-[rgba(139,92,246,0.15)] rounded-lg p-2 bg-[rgba(139,92,246,0.02)] text-xs">
             <div className="flex items-center gap-1.5 font-bold text-[var(--color-purple)] mb-0.5">
               <Dna size={12} />
               <span>Trait : {player.race.passive_name}</span>
@@ -147,7 +147,7 @@ export function StatsPanel({ player, onSendCommand }) {
         </div>
 
         {/* Attributes Panel */}
-        <div className="border border-[rgba(255,255,255,0.05)] rounded-lg p-3 bg-[rgba(0,0,0,0.15)] space-y-2">
+        <div className="border border-[rgba(255,255,255,0.05)] rounded-lg p-2 bg-[rgba(0,0,0,0.15)] space-y-1.5">
           <div className="flex justify-between items-center pb-1.5 border-b border-[rgba(255,255,255,0.05)]">
             <span className="text-xs text-[var(--color-muted)] font-bold uppercase flex items-center gap-1">
               Caractéristiques D&D
@@ -243,13 +243,13 @@ export function StatsPanel({ player, onSendCommand }) {
         </div>
 
         {/* Inventory */}
-        <div className="flex flex-col min-h-[120px]">
-          <span className="flex items-center gap-1.5 text-xs text-[var(--color-muted)] font-bold mb-2 uppercase">
+        <div className="flex flex-col">
+          <span className="flex items-center gap-1.5 text-xs text-[var(--color-muted)] font-bold mb-1.5 uppercase">
             <Briefcase size={14} /> Inventaire ({player.inventory?.length || 0})
           </span>
-          <div className="border border-[rgba(255,255,255,0.05)] rounded-lg p-2 bg-[rgba(0,0,0,0.3)] overflow-y-auto space-y-1.5 max-h-[160px]">
+          <div className="border border-[rgba(255,255,255,0.05)] rounded-lg p-2 bg-[rgba(0,0,0,0.3)] overflow-y-auto space-y-1.5 max-h-[100px]">
             {!player.inventory || player.inventory.length === 0 ? (
-              <div className="text-[var(--color-muted)] text-xs text-center py-8">
+              <div className="text-[var(--color-muted)] text-xs text-center py-3">
                 Votre inventaire est vide
               </div>
             ) : (

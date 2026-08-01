@@ -1,5 +1,117 @@
 {
   "accounts": {
+    "jean": {
+      "username": "jean",
+      "password_hash": "$2a$10$o/KtQsKP.U2jdQ4OO2jc4.dnfWZv9dN/7AZrDVbSA.qGO14wBzVP2",
+      "character": {
+        "id": "jean",
+        "name": "Jean",
+        "race": {
+          "name": "Humain",
+          "description": "Un aventurier humain standard.",
+          "modifiers": {
+            "str": 1,
+            "agi": 0,
+            "int": 0,
+            "con": 1,
+            "spi": 0
+          },
+          "multipliers": {
+            "str": 1,
+            "agi": 1,
+            "int": 1,
+            "con": 1,
+            "spi": 1
+          },
+          "passive_name": "Persévérance",
+          "passive_desc": "Augmente légèrement la régénération naturelle."
+        },
+        "class": "Guerrier Recrue",
+        "class_rarity": "common",
+        "level": 1,
+        "xp": 0,
+        "next_level": 100,
+        "hp": 186,
+        "max_hp": 186,
+        "mana": 30,
+        "max_mana": 30,
+        "gold": 30,
+        "base_stats": {
+          "str": 12,
+          "agi": 8,
+          "int": 5,
+          "con": 13,
+          "spi": 7
+        },
+        "total_stats": {
+          "str": 17,
+          "agi": 1,
+          "int": 1,
+          "con": 17,
+          "spi": 1
+        },
+        "class_multipliers": {
+          "str": 1.35,
+          "agi": 0,
+          "int": 0,
+          "con": 1.25,
+          "spi": 0
+        },
+        "stat_points": 0,
+        "inventory": [
+          {
+            "id": "w_sword",
+            "name": "Épée Rouillée",
+            "description": "Une épée en fer émoussée.",
+            "type": "weapon",
+            "rarity": "common",
+            "power": 10,
+            "value": 5
+          },
+          {
+            "id": "w_shield",
+            "name": "Écu en Bois",
+            "description": "Un bouclier simple.",
+            "type": "armor",
+            "rarity": "common",
+            "power": 5,
+            "value": 5
+          }
+        ],
+        "skills": [
+          {
+            "name": "Attaque Rapide",
+            "description": "Un coup physique agile.",
+            "cost": 0,
+            "power": 12,
+            "type": "attack"
+          },
+          {
+            "name": "Parade",
+            "description": "Réduit les prochains dégâts reçus.",
+            "cost": 4,
+            "power": 8,
+            "type": "defense"
+          },
+          {
+            "name": "Soin Léger",
+            "description": "Restaure un peu de vie.",
+            "cost": 6,
+            "power": 15,
+            "type": "heal"
+          },
+          {
+            "name": "Trait Magique",
+            "description": "Projette une flèche d'énergie.",
+            "cost": 5,
+            "power": 14,
+            "type": "attack"
+          }
+        ],
+        "room_id": "town_square",
+        "evolution_history": []
+      }
+    },
     "p@kool": {
       "username": "p@kool",
       "password_hash": "$2a$10$lVnNv3ml3nakgRZHh1tD0uNZd7wz5hb/5RrNPEgmoql3gcR8NSyMm",

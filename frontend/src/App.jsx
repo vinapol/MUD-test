@@ -513,22 +513,22 @@ export default function App() {
   return (
     <div className="app-grid">
       {/* Narrative Console */}
-      <div className="h-full overflow-hidden">
+      <div className="h-full min-h-0 overflow-hidden">
         <ConsoleLog logs={logs} />
       </div>
 
       {/* Sidebar Panel: Room info + Player stats */}
-      <div className="flex flex-col gap-4 h-full overflow-hidden">
-        <div className="flex-1 min-h-[300px]">
+      <div className="flex flex-col gap-2 h-full min-h-0 overflow-hidden">
+        <div className="flex-1 min-h-0 overflow-hidden">
           <RoomPanel room={room} onSendCommand={handleSendCommand} />
         </div>
-        <div className="flex-1 min-h-[220px]">
+        <div className="flex-1 min-h-0 overflow-hidden">
           <StatsPanel player={player} onSendCommand={handleSendCommand} />
         </div>
       </div>
 
       {/* Console Input Bar */}
-      <div className="col-span-2">
+      <div className="col-span-2 shrink-0 min-h-0">
         <CommandInput
           onSendCommand={handleSendCommand}
           skills={player?.skills}
