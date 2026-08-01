@@ -1,89 +1,485 @@
 {
-  "players": {
-    "test_player": {
-      "id": "test_player",
-      "name": "Test Muted",
-      "race": {
-        "name": "Humain",
-        "description": "Un aventurier humain standard.",
-        "modifiers": {
-          "str": 1,
-          "agi": 0,
-          "int": 0,
-          "con": 1,
-          "spi": 0
-        },
-        "multipliers": {
-          "str": 1,
-          "agi": 1,
-          "int": 1,
-          "con": 1,
-          "spi": 1
-        },
-        "passive_name": "Persévérance",
-        "passive_desc": "Augmente légèrement la régénération naturelle."
+  "accounts": {},
+  "market": [
+    {
+      "id": "mkt_9bbf12fa",
+      "item": {
+        "id": "shop_potion_ec74ad",
+        "name": "Potion de Soin Mineure",
+        "description": "Fiole tiède qui referme les plaies légères.",
+        "type": "potion",
+        "rarity": "common",
+        "power": 30,
+        "value": 18
       },
-      "class": "Mage",
-      "class_rarity": "Common",
-      "level": 1,
-      "xp": 0,
-      "next_level": 100,
-      "hp": 106,
-      "max_hp": 106,
-      "mana": 194,
-      "max_mana": 194,
-      "gold": 30,
-      "base_stats": {
-        "str": 4,
-        "agi": 7,
-        "int": 14,
-        "con": 8,
-        "spi": 12
+      "seller_id": "shop:comptoir_aube",
+      "seller_name": "Comptoir de l'Aube",
+      "shop_id": "comptoir_aube",
+      "listed_at": 1785621993
+    },
+    {
+      "id": "mkt_65535618",
+      "item": {
+        "id": "shop_potion_cc8d47",
+        "name": "Potion de Soin Mineure",
+        "description": "Fiole tiède qui referme les plaies légères.",
+        "type": "potion",
+        "rarity": "common",
+        "power": 30,
+        "value": 18
       },
-      "total_stats": {
-        "str": 2,
-        "agi": 5,
-        "int": 19,
-        "con": 7,
-        "spi": 15
+      "seller_id": "shop:comptoir_aube",
+      "seller_name": "Comptoir de l'Aube",
+      "shop_id": "comptoir_aube",
+      "listed_at": 1785621993
+    },
+    {
+      "id": "mkt_0c9402d2",
+      "item": {
+        "id": "shop_torch_711dad",
+        "name": "Torche Runique",
+        "description": "Matériau d'éclairage pour les marches.",
+        "type": "material",
+        "rarity": "common",
+        "power": 0,
+        "value": 6
       },
-      "class_multipliers": {
-        "str": 0.5,
-        "agi": 0.85,
-        "int": 1.4,
-        "con": 0.8,
-        "spi": 1.25
+      "seller_id": "shop:comptoir_aube",
+      "seller_name": "Comptoir de l'Aube",
+      "shop_id": "comptoir_aube",
+      "listed_at": 1785621993
+    },
+    {
+      "id": "mkt_27dcab70",
+      "item": {
+        "id": "shop_torch_85ea56",
+        "name": "Torche Runique",
+        "description": "Matériau d'éclairage pour les marches.",
+        "type": "material",
+        "rarity": "common",
+        "power": 0,
+        "value": 6
       },
-      "stat_points": 0,
-      "inventory": [
-        {
-          "id": "m_staff",
-          "name": "Bâton d'Apprenti",
-          "description": "Un bâton en bois canalisant le mana.",
-          "type": "weapon",
-          "rarity": "common",
-          "power": 8,
-          "value": 10
-        }
-      ],
-      "skills": [
-        {
-          "name": "Fireball",
-          "description": "Projette une boule de feu magique basée sur l'Intelligence.",
-          "cost": 15,
-          "power": 25,
-          "type": "attack"
-        },
-        {
-          "name": "Heal",
-          "description": "Restaure vos points de vie en utilisant du mana (basé sur l'Esprit).",
-          "cost": 20,
-          "power": 35,
-          "type": "heal"
-        }
-      ],
-      "room_id": "town_square",
-      "evolution_history": []
+      "seller_id": "shop:comptoir_aube",
+      "seller_name": "Comptoir de l'Aube",
+      "shop_id": "comptoir_aube",
+      "listed_at": 1785621993
+    },
+    {
+      "id": "mkt_5b3a44b3",
+      "item": {
+        "id": "shop_ration_e07f0f",
+        "name": "Ration de Voyageur",
+        "description": "Pain et sel de faille.",
+        "type": "potion",
+        "rarity": "common",
+        "power": 15,
+        "value": 10
+      },
+      "seller_id": "shop:comptoir_aube",
+      "seller_name": "Comptoir de l'Aube",
+      "shop_id": "comptoir_aube",
+      "listed_at": 1785621993
+    },
+    {
+      "id": "mkt_d72e56a4",
+      "item": {
+        "id": "shop_ration_e13629",
+        "name": "Ration de Voyageur",
+        "description": "Pain et sel de faille.",
+        "type": "potion",
+        "rarity": "common",
+        "power": 15,
+        "value": 10
+      },
+      "seller_id": "shop:comptoir_aube",
+      "seller_name": "Comptoir de l'Aube",
+      "shop_id": "comptoir_aube",
+      "listed_at": 1785621993
+    },
+    {
+      "id": "mkt_b24b4dea",
+      "item": {
+        "id": "shop_knife_a706ee",
+        "name": "Couteau de Cuisine",
+        "description": "Lame courte — mieux que rien.",
+        "type": "weapon",
+        "rarity": "common",
+        "power": 6,
+        "value": 14
+      },
+      "seller_id": "shop:comptoir_aube",
+      "seller_name": "Comptoir de l'Aube",
+      "shop_id": "comptoir_aube",
+      "listed_at": 1785621993
+    },
+    {
+      "id": "mkt_fa575d4f",
+      "item": {
+        "id": "shop_knife_1c5b74",
+        "name": "Couteau de Cuisine",
+        "description": "Lame courte — mieux que rien.",
+        "type": "weapon",
+        "rarity": "common",
+        "power": 6,
+        "value": 14
+      },
+      "seller_id": "shop:comptoir_aube",
+      "seller_name": "Comptoir de l'Aube",
+      "shop_id": "comptoir_aube",
+      "listed_at": 1785621993
+    },
+    {
+      "id": "mkt_1c112e95",
+      "item": {
+        "id": "forge_blade_8f07d2",
+        "name": "Lame d'Apprenti",
+        "description": "Acier de Sol-Gravis, trempe correcte.",
+        "type": "weapon",
+        "rarity": "uncommon",
+        "power": 14,
+        "value": 40
+      },
+      "seller_id": "shop:enclume_publique",
+      "seller_name": "Enclume Publique",
+      "shop_id": "enclume_publique",
+      "listed_at": 1785621993
+    },
+    {
+      "id": "mkt_47b45d04",
+      "item": {
+        "id": "forge_blade_0b80ea",
+        "name": "Lame d'Apprenti",
+        "description": "Acier de Sol-Gravis, trempe correcte.",
+        "type": "weapon",
+        "rarity": "uncommon",
+        "power": 14,
+        "value": 40
+      },
+      "seller_id": "shop:enclume_publique",
+      "seller_name": "Enclume Publique",
+      "shop_id": "enclume_publique",
+      "listed_at": 1785621993
+    },
+    {
+      "id": "mkt_91e87c56",
+      "item": {
+        "id": "forge_hammer_7c8166",
+        "name": "Marteau de Forge Léger",
+        "description": "Bon à casser des casques.",
+        "type": "weapon",
+        "rarity": "uncommon",
+        "power": 16,
+        "value": 48
+      },
+      "seller_id": "shop:enclume_publique",
+      "seller_name": "Enclume Publique",
+      "shop_id": "enclume_publique",
+      "listed_at": 1785621993
+    },
+    {
+      "id": "mkt_55bb378a",
+      "item": {
+        "id": "forge_hammer_15894c",
+        "name": "Marteau de Forge Léger",
+        "description": "Bon à casser des casques.",
+        "type": "weapon",
+        "rarity": "uncommon",
+        "power": 16,
+        "value": 48
+      },
+      "seller_id": "shop:enclume_publique",
+      "seller_name": "Enclume Publique",
+      "shop_id": "enclume_publique",
+      "listed_at": 1785621993
+    },
+    {
+      "id": "mkt_0956a9a7",
+      "item": {
+        "id": "forge_mail_cf07ad",
+        "name": "Cotte de Mailles Rousse",
+        "description": "Protection fumée des forges.",
+        "type": "armor",
+        "rarity": "uncommon",
+        "power": 10,
+        "value": 36
+      },
+      "seller_id": "shop:enclume_publique",
+      "seller_name": "Enclume Publique",
+      "shop_id": "enclume_publique",
+      "listed_at": 1785621993
+    },
+    {
+      "id": "mkt_ae9bdc6e",
+      "item": {
+        "id": "forge_mail_a50daf",
+        "name": "Cotte de Mailles Rousse",
+        "description": "Protection fumée des forges.",
+        "type": "armor",
+        "rarity": "uncommon",
+        "power": 10,
+        "value": 36
+      },
+      "seller_id": "shop:enclume_publique",
+      "seller_name": "Enclume Publique",
+      "shop_id": "enclume_publique",
+      "listed_at": 1785621993
+    },
+    {
+      "id": "mkt_23bc4cde",
+      "item": {
+        "id": "forge_plate_9ccc2b",
+        "name": "Plaque d'Aurichalque Impur",
+        "description": "Défense lourde, encore imparfaite.",
+        "type": "armor",
+        "rarity": "rare",
+        "power": 18,
+        "value": 90
+      },
+      "seller_id": "shop:enclume_publique",
+      "seller_name": "Enclume Publique",
+      "shop_id": "enclume_publique",
+      "listed_at": 1785621993
+    },
+    {
+      "id": "mkt_7a2e7c44",
+      "item": {
+        "id": "forge_plate_e0d081",
+        "name": "Plaque d'Aurichalque Impur",
+        "description": "Défense lourde, encore imparfaite.",
+        "type": "armor",
+        "rarity": "rare",
+        "power": 18,
+        "value": 90
+      },
+      "seller_id": "shop:enclume_publique",
+      "seller_name": "Enclume Publique",
+      "shop_id": "enclume_publique",
+      "listed_at": 1785621993
+    },
+    {
+      "id": "mkt_cd8bde97",
+      "item": {
+        "id": "trade_rope_419523",
+        "name": "Corde de Nuées",
+        "description": "Fibre aérienne pour l'abordage.",
+        "type": "material",
+        "rarity": "common",
+        "power": 0,
+        "value": 12
+      },
+      "seller_id": "shop:nid_faucon",
+      "seller_name": "Nid de Faucon",
+      "shop_id": "nid_faucon",
+      "listed_at": 1785621993
+    },
+    {
+      "id": "mkt_147ed6b9",
+      "item": {
+        "id": "trade_rope_c036f9",
+        "name": "Corde de Nuées",
+        "description": "Fibre aérienne pour l'abordage.",
+        "type": "material",
+        "rarity": "common",
+        "power": 0,
+        "value": 12
+      },
+      "seller_id": "shop:nid_faucon",
+      "seller_name": "Nid de Faucon",
+      "shop_id": "nid_faucon",
+      "listed_at": 1785621993
+    },
+    {
+      "id": "mkt_f68d0f76",
+      "item": {
+        "id": "trade_charm_5a9bee",
+        "name": "Amulette de Traversée",
+        "description": "Petite protection contre le vertige.",
+        "type": "armor",
+        "rarity": "uncommon",
+        "power": 7,
+        "value": 28
+      },
+      "seller_id": "shop:nid_faucon",
+      "seller_name": "Nid de Faucon",
+      "shop_id": "nid_faucon",
+      "listed_at": 1785621993
+    },
+    {
+      "id": "mkt_ffd03b44",
+      "item": {
+        "id": "trade_charm_5eda6a",
+        "name": "Amulette de Traversée",
+        "description": "Petite protection contre le vertige.",
+        "type": "armor",
+        "rarity": "uncommon",
+        "power": 7,
+        "value": 28
+      },
+      "seller_id": "shop:nid_faucon",
+      "seller_name": "Nid de Faucon",
+      "shop_id": "nid_faucon",
+      "listed_at": 1785621993
+    },
+    {
+      "id": "mkt_ffcd12d9",
+      "item": {
+        "id": "trade_cutlass_c6e9c3",
+        "name": "Sabre de Contrebandier",
+        "description": "Courbe et trop utilisée.",
+        "type": "weapon",
+        "rarity": "uncommon",
+        "power": 15,
+        "value": 44
+      },
+      "seller_id": "shop:nid_faucon",
+      "seller_name": "Nid de Faucon",
+      "shop_id": "nid_faucon",
+      "listed_at": 1785621993
+    },
+    {
+      "id": "mkt_9def3c84",
+      "item": {
+        "id": "trade_cutlass_58e98f",
+        "name": "Sabre de Contrebandier",
+        "description": "Courbe et trop utilisée.",
+        "type": "weapon",
+        "rarity": "uncommon",
+        "power": 15,
+        "value": 44
+      },
+      "seller_id": "shop:nid_faucon",
+      "seller_name": "Nid de Faucon",
+      "shop_id": "nid_faucon",
+      "listed_at": 1785621993
+    },
+    {
+      "id": "mkt_c41d16b3",
+      "item": {
+        "id": "salv_kit_184753",
+        "name": "Trousse de Campagne",
+        "description": "Bandages et huile de lame.",
+        "type": "potion",
+        "rarity": "common",
+        "power": 25,
+        "value": 16
+      },
+      "seller_id": "shop:poste_recup",
+      "seller_name": "Poste de Récupération",
+      "shop_id": "poste_recup",
+      "listed_at": 1785621993
+    },
+    {
+      "id": "mkt_5cb3bdb9",
+      "item": {
+        "id": "salv_kit_9958ba",
+        "name": "Trousse de Campagne",
+        "description": "Bandages et huile de lame.",
+        "type": "potion",
+        "rarity": "common",
+        "power": 25,
+        "value": 16
+      },
+      "seller_id": "shop:poste_recup",
+      "seller_name": "Poste de Récupération",
+      "shop_id": "poste_recup",
+      "listed_at": 1785621993
+    },
+    {
+      "id": "mkt_b19a4059",
+      "item": {
+        "id": "salv_spear_64a980",
+        "name": "Lance de Sentinelle",
+        "description": "Fer de récupération remis en état.",
+        "type": "weapon",
+        "rarity": "common",
+        "power": 11,
+        "value": 26
+      },
+      "seller_id": "shop:poste_recup",
+      "seller_name": "Poste de Récupération",
+      "shop_id": "poste_recup",
+      "listed_at": 1785621993
+    },
+    {
+      "id": "mkt_7ec63d64",
+      "item": {
+        "id": "salv_spear_a49da8",
+        "name": "Lance de Sentinelle",
+        "description": "Fer de récupération remis en état.",
+        "type": "weapon",
+        "rarity": "common",
+        "power": 11,
+        "value": 26
+      },
+      "seller_id": "shop:poste_recup",
+      "seller_name": "Poste de Récupération",
+      "shop_id": "poste_recup",
+      "listed_at": 1785621993
+    },
+    {
+      "id": "mkt_cce2abdb",
+      "item": {
+        "id": "ebon_dust_d81d65",
+        "name": "Poussière d'Ébène",
+        "description": "Résidu du monolithe — matière première.",
+        "type": "material",
+        "rarity": "uncommon",
+        "power": 0,
+        "value": 20
+      },
+      "seller_id": "shop:brocante_coeur",
+      "seller_name": "Brocante du Cœur",
+      "shop_id": "brocante_coeur",
+      "listed_at": 1785621993
+    },
+    {
+      "id": "mkt_f1951275",
+      "item": {
+        "id": "ebon_dust_bc9cfd",
+        "name": "Poussière d'Ébène",
+        "description": "Résidu du monolithe — matière première.",
+        "type": "material",
+        "rarity": "uncommon",
+        "power": 0,
+        "value": 20
+      },
+      "seller_id": "shop:brocante_coeur",
+      "seller_name": "Brocante du Cœur",
+      "shop_id": "brocante_coeur",
+      "listed_at": 1785621993
+    },
+    {
+      "id": "mkt_3ee64d52",
+      "item": {
+        "id": "ebon_dagger_3276fd",
+        "name": "Dague de Paria",
+        "description": "Lame noire ébréchée.",
+        "type": "weapon",
+        "rarity": "uncommon",
+        "power": 13,
+        "value": 34
+      },
+      "seller_id": "shop:brocante_coeur",
+      "seller_name": "Brocante du Cœur",
+      "shop_id": "brocante_coeur",
+      "listed_at": 1785621993
+    },
+    {
+      "id": "mkt_485a5f40",
+      "item": {
+        "id": "ebon_dagger_6f6c2a",
+        "name": "Dague de Paria",
+        "description": "Lame noire ébréchée.",
+        "type": "weapon",
+        "rarity": "uncommon",
+        "power": 13,
+        "value": 34
+      },
+      "seller_id": "shop:brocante_coeur",
+      "seller_name": "Brocante du Cœur",
+      "shop_id": "brocante_coeur",
+      "listed_at": 1785621993
     }
-  }
+  ]
 }

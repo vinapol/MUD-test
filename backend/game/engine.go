@@ -24,86 +24,43 @@ type Engine struct {
 	Rooms   map[string]*Room
 	DB      *Database
 	Mu      sync.RWMutex
-	
+
+	// Hostile spawn cycle (Kenoma void pressure)
+	SpawnConfigs  map[string]RoomSpawnConfig
+	pendingSpawns []pendingSpawn
+	spawnMu       sync.Mutex
+
+	// Economy
+	Market    *Market
+	Shops     []Shop
+	RestSites []RestSite
+	Parties   *PartyManager
+
 	// Adapters for LLM operations (to prevent circular imports)
 	GenerateContent          func(conceptType string, prompt string) (interface{}, error)
 	GenerateCharacterConcept func(customClass, customRace string, customSkills []string) (interface{}, error)
-	GenerateEvolution        func(stats Attributes, class, race string, level int) (interface{}, error)
+	GenerateEvolution        func(stats Attributes, class, race string, level int, existingSkills []string) (interface{}, error)
 }
 
 // NewEngine initializes the game engine and loads the JSON database.
 func NewEngine(dbPath string) *Engine {
 	e := &Engine{
-		Players: make(map[string]*Player),
-		Rooms:   make(map[string]*Room),
-		DB:      NewDatabase(dbPath),
+		Players:      make(map[string]*Player),
+		Rooms:        make(map[string]*Room),
+		DB:           NewDatabase(dbPath),
+		SpawnConfigs: make(map[string]RoomSpawnConfig),
+		Market:       &Market{},
+		Parties:      newPartyManager(),
 	}
 	e.initWorld()
+	e.registerKenomaSpawnTables()
+	e.registerShops()
+	e.registerRestSites()
+	if listings := e.DB.LoadMarket(); len(listings) > 0 {
+		e.Market.Listings = listings
+	}
+	e.seedShopListingsIfEmpty()
 	return e
-}
-
-// initWorld populates the world map with initial rooms.
-func (e *Engine) initWorld() {
-	e.Rooms["town_square"] = &Room{
-		ID:          "town_square",
-		Name:        "Place du Village (Antigravity)",
-		Description: "Une place animée entourée d'auberges en bois et pavée de vieilles pierres. Une douce brise souffle, emportant l'odeur du pain chaud. Au nord, une forêt sombre s'étend à perte de vue. À l'est, l'entrée d'une mine abandonnée se dessine dans la colline.",
-		Exits: map[string]string{
-			"north": "dark_forest",
-			"east":  "abandoned_mine",
-		},
-		Players: make(map[string]bool),
-		Items: []Item{
-			{ID: "health_potion", Name: "Potion de Vie", Description: "Une fiole contenant un liquide rouge pétillant.", Type: "potion", Rarity: "uncommon", Power: 50, Value: 15},
-		},
-		NPCs: make(map[string]*NPC),
-	}
-
-	e.Rooms["dark_forest"] = &Room{
-		ID:          "dark_forest",
-		Name:        "La Forêt Sombre",
-		Description: "Des arbres gigantesques aux branches tordues cachent la lumière du jour. Le sol est couvert de mousse humide et de racines traîtresses. Un silence lourd règne ici, interrompu par des craquements mystérieux. Le village se trouve au sud.",
-		Exits: map[string]string{
-			"south": "town_square",
-		},
-		Players: make(map[string]bool),
-		Items:   []Item{},
-		NPCs: map[string]*NPC{
-			"wolf_1": {
-				ID:          "wolf_1",
-				Name:        "Loup Affamé",
-				Description: "Un grand loup gris aux yeux jaunes brillants. Il grogne en vous observant.",
-				Rarity:      "common",
-				HP:          60,
-				MaxHP:       60,
-				Attack:      8,
-				Drops:       []string{"Fourrure de Loup", "Dent de Loup"},
-			},
-		},
-	}
-
-	e.Rooms["abandoned_mine"] = &Room{
-		ID:          "abandoned_mine",
-		Name:        "La Mine Abandonnée",
-		Description: "L'air est frais et humide, chargé d'une odeur de soufre et de poussière de roche. Des rails rouillés s'enfoncent dans l'obscurité. Des gouttes d'eau tombent régulièrement du plafond rocheux. Le retour vers la place du village est à l'ouest.",
-		Exits: map[string]string{
-			"west": "town_square",
-		},
-		Players: make(map[string]bool),
-		Items:   []Item{},
-		NPCs: map[string]*NPC{
-			"goblin_1": {
-				ID:          "goblin_1",
-				Name:        "Gobelin Mineur",
-				Description: "Une petite créature sournoise munie d'une pioche rouillée.",
-				Rarity:      "uncommon",
-				HP:          80,
-				MaxHP:       80,
-				Attack:      12,
-				Drops:       []string{"Minerai de Fer", "Pioche Brisée"},
-			},
-		},
-	}
 }
 
 // RegisterPlayer handles a new WebSocket connection, prompting them to log in or register.
@@ -129,7 +86,7 @@ func (e *Engine) RegisterPlayer(conn *websocket.Conn) {
 	
 	// Send initial prompt: client needs to log in
 	player.SendMessage("auth_prompt", map[string]string{
-		"message": "Connexion requise pour entrer sur Antigravity MUD.",
+		"message": "Connexion requise pour entrer dans Kenoma, le Monde-Frontière.",
 	})
 
 	go player.ReadPump(e)
@@ -161,6 +118,7 @@ func (e *Engine) UnregisterPlayer(playerID string) {
 	
 	// Only save if it's an authenticated user (IDs start with "temp_" for visitors)
 	if !strings.HasPrefix(playerID, "temp_") {
+		e.clearPartyStateForPlayer(playerID)
 		e.DB.SavePlayer(player)
 	}
 
@@ -203,7 +161,14 @@ func (e *Engine) BroadcastToAll(msgType string, payload interface{}) {
 // BroadcastPlayerState updates the frontend client with the player's updated attributes.
 func (e *Engine) BroadcastPlayerState(player *Player) {
 	player.Mu.Lock()
-	
+	enriched := EnrichPlayerSkills(player)
+	wPow, aPow := 0, 0
+	if w := player.itemByIDLocked(player.EquippedWeapon); w != nil {
+		wPow = w.Power
+	}
+	if a := player.itemByIDLocked(player.EquippedArmor); a != nil {
+		aPow = a.Power
+	}
 	// Create a client-safe state map
 	state := map[string]interface{}{
 		"id":                player.ID,
@@ -224,12 +189,23 @@ func (e *Engine) BroadcastPlayerState(player *Player) {
 		"class_multipliers": player.ClassMultipliers,
 		"stat_points":       player.StatPoints,
 		"inventory":         player.Inventory,
+		"equipped_weapon":   player.EquippedWeapon,
+		"equipped_armor":    player.EquippedArmor,
+		"weapon_power":      wPow,
+		"armor_power":       aPow,
 		"skills":            player.Skills,
+		"shield":            player.Shield,
+		"evade_charges":     player.EvadeCharges,
+		"statuses":          player.Statuses,
 		"room_id":           player.RoomID,
 		"evolution_history": player.EvolutionHistory,
 	}
 	player.Mu.Unlock()
-	
+
+	if enriched && e.DB != nil {
+		e.DB.SavePlayer(player)
+	}
+
 	player.SendMessage("player_update", state)
 }
 
@@ -242,12 +218,30 @@ func (e *Engine) BroadcastRoomState(roomID string) {
 
 	room.Mu.Lock()
 
-	// Get player names
-	playersInRoom := []string{}
+	// Get players in room (for PvP targeting)
+	playersInRoom := []map[string]interface{}{}
 	e.Mu.RLock()
 	for pid := range room.Players {
 		if p, ok := e.Players[pid]; ok {
-			playersInRoom = append(playersInRoom, p.Name)
+			p.Mu.Lock()
+			entry := map[string]interface{}{
+				"id":     p.ID,
+				"name":   p.Name,
+				"hp":     p.HP,
+				"max_hp": p.MaxHP,
+				"level":  p.Level,
+				"class":  p.Class,
+			}
+			p.Mu.Unlock()
+			if e.Parties != nil {
+				e.Parties.Mu.Lock()
+				if pty := e.Parties.ByPlayer[pid]; pty != "" {
+					entry["party_id"] = pty
+					entry["is_leader"] = e.Parties.Parties[pty] != nil && e.Parties.Parties[pty].Leader == pid
+				}
+				e.Parties.Mu.Unlock()
+			}
+			playersInRoom = append(playersInRoom, entry)
 		}
 	}
 	e.Mu.RUnlock()
@@ -320,15 +314,44 @@ func (e *Engine) BroadcastRoomState(roomID string) {
 		"npcs":           npcs,
 		"nearby_players": nearbyPlayers,
 	}
+	if shop := e.ShopForRoom(roomID); shop != nil {
+		roomState["shop"] = map[string]interface{}{
+			"id": shop.ID, "name": shop.Name, "kind": shop.Kind,
+			"description": shop.Description,
+		}
+	}
+	if rest := e.RestSiteForRoom(roomID); rest != nil {
+		roomState["rest"] = map[string]interface{}{
+			"id": rest.ID, "name": rest.Name, "cost": rest.Cost,
+			"description": rest.Description,
+			"hp_percent": rest.HPPercent, "mana_percent": rest.ManaPercent,
+		}
+	}
 
-	// Broadcast room state to everyone in this room
+	// Broadcast room state to everyone in this room (personalized ally flags)
 	for _, pid := range roomPlayers {
 		e.Mu.RLock()
 		p, ok := e.Players[pid]
 		e.Mu.RUnlock()
-		if ok {
-			p.SendMessage("room_update", roomState)
+		if !ok {
+			continue
 		}
+		personalized := make([]map[string]interface{}, len(playersInRoom))
+		for i, pl := range playersInRoom {
+			cp := make(map[string]interface{}, len(pl)+1)
+			for k, v := range pl {
+				cp[k] = v
+			}
+			otherID, _ := pl["id"].(string)
+			cp["ally"] = e.SameParty(pid, otherID)
+			personalized[i] = cp
+		}
+		state := map[string]interface{}{}
+		for k, v := range roomState {
+			state[k] = v
+		}
+		state["players"] = personalized
+		p.SendMessage("room_update", state)
 	}
 }
 
@@ -371,10 +394,114 @@ func (e *Engine) HandleMessage(player *Player, msg WSMessage) {
 	case "command":
 		cmdStr, ok := msg.Payload.(string)
 		if !ok {
+			// json.Unmarshal into interface{} is normally string; accept other shapes
+			switch v := msg.Payload.(type) {
+			case json.Number:
+				cmdStr = v.String()
+				ok = true
+			default:
+				if b, err := json.Marshal(msg.Payload); err == nil {
+					var s string
+					if json.Unmarshal(b, &s) == nil && s != "" {
+						cmdStr = s
+						ok = true
+					}
+				}
+			}
+		}
+		if !ok || strings.TrimSpace(cmdStr) == "" {
 			player.SendMessage("error", "Format de commande invalide")
 			return
 		}
 		e.handleCommand(player, cmdStr)
+
+	case "equip":
+		// Dedicated UI message: payload is item id or name (string or {id|name})
+		query := ""
+		switch v := msg.Payload.(type) {
+		case string:
+			query = v
+		default:
+			bytes, err := json.Marshal(msg.Payload)
+			if err == nil {
+				var obj map[string]interface{}
+				if json.Unmarshal(bytes, &obj) == nil {
+					if id, ok := obj["id"].(string); ok && id != "" {
+						query = id
+					} else if name, ok := obj["name"].(string); ok {
+						query = name
+					}
+				} else {
+					var s string
+					if json.Unmarshal(bytes, &s) == nil {
+						query = s
+					}
+				}
+			}
+		}
+		e.executeEquip(player, query)
+
+	case "shop":
+		e.executeBoutique(player)
+
+	case "buy":
+		query := ""
+		switch v := msg.Payload.(type) {
+		case string:
+			query = v
+		default:
+			bytes, err := json.Marshal(msg.Payload)
+			if err == nil {
+				var obj map[string]interface{}
+				if json.Unmarshal(bytes, &obj) == nil {
+					if id, ok := obj["id"].(string); ok && id != "" {
+						query = "#" + id
+					} else if name, ok := obj["name"].(string); ok {
+						query = name
+					}
+				} else {
+					var s string
+					if json.Unmarshal(bytes, &s) == nil {
+						query = s
+					}
+				}
+			}
+		}
+		e.executeAcheter(player, query)
+
+	case "sell":
+		query := ""
+		switch v := msg.Payload.(type) {
+		case string:
+			query = v
+		default:
+			bytes, err := json.Marshal(msg.Payload)
+			if err == nil {
+				var obj map[string]interface{}
+				if json.Unmarshal(bytes, &obj) == nil {
+					if id, ok := obj["id"].(string); ok && id != "" {
+						query = id
+					} else if name, ok := obj["name"].(string); ok {
+						query = name
+					}
+				} else {
+					var s string
+					if json.Unmarshal(bytes, &s) == nil {
+						query = s
+					}
+				}
+			}
+		}
+		e.executeVendre(player, query)
+
+	case "unequip":
+		slot := ""
+		if s, ok := msg.Payload.(string); ok {
+			slot = s
+		} else if b, err := json.Marshal(msg.Payload); err == nil {
+			_ = json.Unmarshal(b, &slot)
+		}
+		e.executeUnequip(player, slot)
 	}
 }
 
@@ -439,10 +566,15 @@ func (e *Engine) handleAuthSuccess(tempPlayer *Player, acc *Account) {
 		tempPlayer.ClassMultipliers = acc.Character.ClassMultipliers
 		tempPlayer.StatPoints = acc.Character.StatPoints
 		tempPlayer.Inventory = append([]Item{}, acc.Character.Inventory...)
+		tempPlayer.EquippedWeapon = acc.Character.EquippedWeapon
+		tempPlayer.EquippedArmor = acc.Character.EquippedArmor
 		tempPlayer.Skills = append([]Skill{}, acc.Character.Skills...)
 		tempPlayer.RoomID = acc.Character.RoomID
 		tempPlayer.EvolutionHistory = append([]EvolutionHistory{}, acc.Character.EvolutionHistory...)
 		tempPlayer.Mu.Unlock()
+		tempPlayer.EnsureDefaultEquipment()
+		tempPlayer.RecalculateStats()
+		e.DB.SavePlayer(tempPlayer)
 	} else {
 		// Placeholder player details in-place
 		tempPlayer.Mu.Lock()
@@ -463,18 +595,23 @@ func (e *Engine) handleAuthSuccess(tempPlayer *Player, acc *Account) {
 	})
 
 	if hasCharacter {
-		roomID := tempPlayer.RoomID
+		roomID := ResolveRoomID(tempPlayer.RoomID)
 		if roomID == "" {
 			roomID = "town_square"
 		}
-		
+
 		e.Mu.RLock()
 		room, exists := e.Rooms[roomID]
 		if !exists {
+			roomID = "town_square"
 			room = e.Rooms["town_square"]
 		}
 		e.Mu.RUnlock()
-		
+
+		tempPlayer.Mu.Lock()
+		tempPlayer.RoomID = roomID
+		tempPlayer.Mu.Unlock()
+
 		room.AddPlayer(tempPlayer.ID)
 		
 		tempPlayer.SendMessage("log", map[string]string{
@@ -490,6 +627,7 @@ func (e *Engine) handleAuthSuccess(tempPlayer *Player, acc *Account) {
 		// Send room and player states synchronously (now safe and deadlock-free!)
 		e.BroadcastPlayerState(tempPlayer)
 		e.BroadcastRoomState(room.ID)
+		e.pushPartyUpdate(tempPlayer.ID)
 	} else {
 		tempPlayer.SendMessage("class_selection", map[string]string{
 			"message": "Créez votre personnage.",

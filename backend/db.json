@@ -84,31 +84,181 @@
             "description": "Un coup physique agile.",
             "cost": 0,
             "power": 12,
-            "type": "attack"
+            "type": "attack",
+            "effect": "",
+            "effect_label": "",
+            "flavor": "",
+            "duration": 0
           },
           {
             "name": "Parade",
             "description": "Réduit les prochains dégâts reçus.",
             "cost": 4,
             "power": 8,
-            "type": "defense"
+            "type": "defense",
+            "effect": "",
+            "effect_label": "",
+            "flavor": "",
+            "duration": 0
           },
           {
             "name": "Soin Léger",
             "description": "Restaure un peu de vie.",
             "cost": 6,
             "power": 15,
-            "type": "heal"
+            "type": "heal",
+            "effect": "",
+            "effect_label": "",
+            "flavor": "",
+            "duration": 0
           },
           {
             "name": "Trait Magique",
             "description": "Projette une flèche d'énergie.",
             "cost": 5,
             "power": 14,
-            "type": "attack"
+            "type": "attack",
+            "effect": "",
+            "effect_label": "",
+            "flavor": "",
+            "duration": 0
           }
         ],
-        "room_id": "town_square",
+        "shield": 0,
+        "evade_charges": 0,
+        "reflect_percent": 0,
+        "room_id": "abandoned_mine",
+        "evolution_history": []
+      }
+    },
+    "louis": {
+      "username": "louis",
+      "password_hash": "$2a$10$CndtocaBWs4lJdJJD8MKDOAN8.cvA5DJx7PAtz0I5E7UxfnUvdyNG",
+      "character": {
+        "id": "louis",
+        "name": "louis",
+        "race": {
+          "name": "Elf",
+          "description": "Un membre de la race Elf.",
+          "modifiers": {
+            "str": 0,
+            "agi": 2,
+            "int": 2,
+            "con": 0,
+            "spi": 1
+          },
+          "multipliers": {
+            "str": 0.95,
+            "agi": 1.15,
+            "int": 1.1,
+            "con": 0.9,
+            "spi": 1.1
+          },
+          "passive_name": "Vision Nocturne",
+          "passive_desc": "Perception accrue dans l'obscurité."
+        },
+        "class": "Archi-druide",
+        "class_rarity": "common",
+        "level": 1,
+        "xp": 0,
+        "next_level": 100,
+        "hp": 106,
+        "max_hp": 122,
+        "mana": 146,
+        "max_mana": 146,
+        "gold": 30,
+        "base_stats": {
+          "str": 10,
+          "agi": 10,
+          "int": 10,
+          "con": 10,
+          "spi": 10
+        },
+        "total_stats": {
+          "str": 9,
+          "agi": 13,
+          "int": 13,
+          "con": 9,
+          "spi": 12
+        },
+        "class_multipliers": {
+          "str": 1,
+          "agi": 1,
+          "int": 1,
+          "con": 1,
+          "spi": 1
+        },
+        "stat_points": 0,
+        "inventory": [
+          {
+            "id": "start_weapon",
+            "name": "Arme de Archi-druide",
+            "description": "Équipement de départ adapté à votre voie.",
+            "type": "weapon",
+            "rarity": "common",
+            "power": 11,
+            "value": 35
+          },
+          {
+            "id": "start_armor",
+            "name": "Protection de Voyageur",
+            "description": "Une armure légère pour débuter l'aventure.",
+            "type": "armor",
+            "rarity": "common",
+            "power": 5,
+            "value": 15
+          }
+        ],
+        "skills": [
+          {
+            "name": "Soin Mineur",
+            "description": "Restaure faiblement vos points de vie.",
+            "cost": 5,
+            "power": 15,
+            "type": "heal",
+            "effect": "",
+            "effect_label": "",
+            "flavor": "",
+            "duration": 0
+          },
+          {
+            "name": "Magie sylvèstre ultime",
+            "description": "Capacité attack liée à votre voie de Archi-druide. [dégâts ~18]",
+            "cost": 6,
+            "power": 18,
+            "type": "attack",
+            "effect": "",
+            "effect_label": "",
+            "flavor": "",
+            "duration": 0
+          },
+          {
+            "name": "Résurection",
+            "description": "Capacité attack liée à votre voie de Archi-druide. [dégâts ~14]",
+            "cost": 3,
+            "power": 14,
+            "type": "attack",
+            "effect": "",
+            "effect_label": "",
+            "flavor": "",
+            "duration": 0
+          },
+          {
+            "name": "Frappe Critique",
+            "description": "Capacité attack liée à votre voie de Archi-druide. [dégâts ~14]",
+            "cost": 3,
+            "power": 14,
+            "type": "attack",
+            "effect": "",
+            "effect_label": "",
+            "flavor": "",
+            "duration": 0
+          }
+        ],
+        "shield": 0,
+        "evade_charges": 0,
+        "reflect_percent": 0,
+        "room_id": "abandoned_mine",
         "evolution_history": []
       }
     },
@@ -117,16 +267,16 @@
       "password_hash": "$2a$10$lVnNv3ml3nakgRZHh1tD0uNZd7wz5hb/5RrNPEgmoql3gcR8NSyMm",
       "character": {
         "id": "p@kool",
-        "name": "Askeladd",
+        "name": "Saitama",
         "race": {
           "name": "Humain",
-          "description": "Un aventurier humain standard.",
+          "description": "Un membre de la race Humain.",
           "modifiers": {
             "str": 1,
-            "agi": 0,
-            "int": 0,
+            "agi": 1,
+            "int": 1,
             "con": 1,
-            "spi": 0
+            "spi": 1
           },
           "multipliers": {
             "str": 1,
@@ -135,92 +285,140 @@
             "con": 1,
             "spi": 1
           },
-          "passive_name": "Persévérance",
-          "passive_desc": "Augmente légèrement la régénération naturelle."
+          "passive_name": "Adaptabilité",
+          "passive_desc": "Polyvalence naturelle."
         },
-        "class": "Guerrier Recrue",
+        "class": "Super héro",
         "class_rarity": "common",
-        "level": 1,
-        "xp": 0,
-        "next_level": 100,
-        "hp": 186,
-        "max_hp": 186,
-        "mana": 30,
-        "max_mana": 30,
-        "gold": 30,
+        "level": 2,
+        "xp": 50,
+        "next_level": 150,
+        "hp": 121,
+        "max_hp": 146,
+        "mana": 112,
+        "max_mana": 130,
+        "gold": 50,
         "base_stats": {
-          "str": 12,
-          "agi": 8,
-          "int": 5,
-          "con": 13,
-          "spi": 7
+          "str": 15,
+          "agi": 10,
+          "int": 10,
+          "con": 10,
+          "spi": 10
         },
         "total_stats": {
-          "str": 17,
-          "agi": 1,
-          "int": 1,
-          "con": 17,
-          "spi": 1
+          "str": 20,
+          "agi": 11,
+          "int": 11,
+          "con": 12,
+          "spi": 11
         },
         "class_multipliers": {
-          "str": 1.35,
-          "agi": 0,
-          "int": 0,
-          "con": 1.25,
-          "spi": 0
+          "str": 1,
+          "agi": 1,
+          "int": 1,
+          "con": 1,
+          "spi": 1
         },
         "stat_points": 0,
         "inventory": [
           {
-            "id": "w_sword",
-            "name": "Épée Rouillée",
-            "description": "Une épée en fer émoussée.",
+            "id": "start_weapon",
+            "name": "Arme de Super héro",
+            "description": "Équipement de départ adapté à votre voie.",
             "type": "weapon",
             "rarity": "common",
-            "power": 10,
-            "value": 5
+            "power": 19,
+            "value": 82
           },
           {
-            "id": "w_shield",
-            "name": "Écu en Bois",
-            "description": "Un bouclier simple.",
+            "id": "start_armor",
+            "name": "Protection de Voyageur",
+            "description": "Une armure légère pour débuter l'aventure.",
             "type": "armor",
             "rarity": "common",
-            "power": 5,
-            "value": 5
+            "power": 7,
+            "value": 22
+          },
+          {
+            "id": "watcher_ration",
+            "name": "Ration de Veilleur",
+            "description": "Pain noir et sel de faille — assez pour une garde.",
+            "type": "potion",
+            "rarity": "common",
+            "power": 25,
+            "value": 8
+          },
+          {
+            "id": "drop_2a7c6fd7",
+            "name": "Épée Courte de Veilleur",
+            "description": "Arme récupérée sur Éclaireur Corrompu — encore utilisable.",
+            "type": "weapon",
+            "rarity": "uncommon",
+            "power": 18,
+            "value": 51
+          },
+          {
+            "id": "drop_10d64eda",
+            "name": "Carte Annotée des Marches",
+            "description": "Arme récupérée sur Éclaireur Corrompu — encore utilisable.",
+            "type": "weapon",
+            "rarity": "uncommon",
+            "power": 17,
+            "value": 49
           }
         ],
+        "equipped_weapon": "start_weapon",
+        "equipped_armor": "start_armor",
         "skills": [
           {
-            "name": "Attaque Rapide",
-            "description": "Un coup physique agile.",
-            "cost": 0,
-            "power": 12,
-            "type": "attack"
-          },
-          {
-            "name": "Parade",
-            "description": "Réduit les prochains dégâts reçus.",
-            "cost": 4,
-            "power": 8,
-            "type": "defense"
-          },
-          {
-            "name": "Soin Léger",
-            "description": "Restaure un peu de vie.",
+            "name": "Pluie de coups ordinaires",
+            "description": "Pluie de coups ordinaires frappe avec une puissance concentrée, sans détour. · Dégâts directs — dégâts ~18",
             "cost": 6,
-            "power": 15,
-            "type": "heal"
+            "power": 18,
+            "type": "attack",
+            "effect": "DAMAGE_DIRECT",
+            "effect_label": "Dégâts directs",
+            "flavor": "physical",
+            "duration": 0
           },
           {
-            "name": "Trait Magique",
-            "description": "Projette une flèche d'énergie.",
-            "cost": 5,
-            "power": 14,
-            "type": "attack"
+            "name": "Attaque Basique",
+            "description": "Un coup d'arme simple. · Dégâts directs — dégâts ~10",
+            "cost": 0,
+            "power": 10,
+            "type": "attack",
+            "effect": "DAMAGE_DIRECT",
+            "effect_label": "Dégâts directs",
+            "flavor": "physical",
+            "duration": 0
+          },
+          {
+            "name": "Attaque Basique",
+            "description": "Un coup d'arme simple. · Dégâts directs — dégâts ~10",
+            "cost": 0,
+            "power": 10,
+            "type": "attack",
+            "effect": "DAMAGE_DIRECT",
+            "effect_label": "Dégâts directs",
+            "flavor": "physical",
+            "duration": 0
+          },
+          {
+            "name": "One Punch !!!",
+            "description": "One Punch !!! frappe avec une puissance concentrée, sans détour. · Dégâts directs — dégâts ~18",
+            "cost": 6,
+            "power": 18,
+            "type": "attack",
+            "effect": "DAMAGE_DIRECT",
+            "effect_label": "Dégâts directs",
+            "flavor": "physical",
+            "duration": 0
           }
         ],
-        "room_id": "town_square",
+        "shield": 0,
+        "evade_charges": 0,
+        "reflect_percent": 0,
+        "room_id": "bastion_gris",
         "evolution_history": []
       }
     },
@@ -231,110 +429,1083 @@
         "id": "vinapol",
         "name": "Azathot",
         "race": {
-          "name": "Créature Céleste",
-          "description": "Race divine forgée par le Concepteur.",
+          "name": "Créature céleste",
+          "description": "Un membre de la race Créature céleste.",
           "modifiers": {
-            "str": 5,
-            "agi": 5,
-            "int": 5,
-            "con": 5,
-            "spi": 5
+            "str": 0,
+            "agi": 0,
+            "int": 2,
+            "con": 1,
+            "spi": 3
           },
           "multipliers": {
-            "str": 1.5,
-            "agi": 1.5,
-            "int": 1.5,
-            "con": 1.5,
-            "spi": 1.5
+            "str": 1.05,
+            "agi": 1.05,
+            "int": 1.15,
+            "con": 1.05,
+            "spi": 1.25
           },
-          "passive_name": "Volonté Créatrice",
-          "passive_desc": "Régénération divine accrue."
+          "passive_name": "Aura Céleste",
+          "passive_desc": "Régénération de mana améliorée."
         },
-        "class": "Dieu du vide",
+        "class": "Dieu du vide d'Aurelia-Secundus",
         "class_rarity": "unique",
-        "level": 1,
-        "xp": 0,
-        "next_level": 100,
-        "hp": 458,
-        "max_hp": 458,
-        "mana": 530,
-        "max_mana": 530,
-        "gold": 30,
+        "level": 5,
+        "xp": 298,
+        "next_level": 505,
+        "hp": 230,
+        "max_hp": 250,
+        "mana": 284,
+        "max_mana": 330,
+        "gold": 455,
         "base_stats": {
-          "str": 18,
-          "agi": 18,
-          "int": 18,
-          "con": 18,
-          "spi": 18
+          "str": 14,
+          "agi": 24,
+          "int": 16,
+          "con": 16,
+          "spi": 20
         },
         "total_stats": {
-          "str": 51,
-          "agi": 51,
-          "int": 51,
-          "con": 51,
-          "spi": 51
+          "str": 30,
+          "agi": 33,
+          "int": 27,
+          "con": 25,
+          "spi": 37
         },
         "class_multipliers": {
-          "str": 1.5,
-          "agi": 1.5,
-          "int": 1.5,
-          "con": 1.5,
-          "spi": 1.5
+          "str": 1.32,
+          "agi": 1.32,
+          "int": 1.32,
+          "con": 1.32,
+          "spi": 1.32
         },
         "stat_points": 0,
         "inventory": [
           {
-            "id": "",
-            "name": "Épée du Concepteur",
-            "description": "Forgée dans le code source.",
+            "id": "start_weapon",
+            "name": "Arme de Dieu du vide",
+            "description": "Lame forgée dans le souffle d'Azathot — unique à la voie du Dieu du vide.",
             "type": "weapon",
             "rarity": "unique",
-            "power": 25,
-            "value": 1000
+            "power": 47,
+            "value": 166
           },
           {
-            "id": "",
-            "name": "Armure Céleste",
-            "description": "Tissée de fils de lumière divine.",
+            "id": "start_armor",
+            "name": "Protection de Voyageur",
+            "description": "Une armure légère pour débuter l'aventure.",
             "type": "armor",
-            "rarity": "unique",
-            "power": 20,
-            "value": 1000
+            "rarity": "common",
+            "power": 9,
+            "value": 15
+          },
+          {
+            "id": "drop_fab4d937",
+            "name": "Insigne de l'Ombre Fertile",
+            "description": "Matériau ou trophée. (Insigne de l'Ombre Fertile)",
+            "type": "material",
+            "rarity": "rare",
+            "power": 0,
+            "value": 13
+          },
+          {
+            "id": "drop_69053b73",
+            "name": "Insigne de l'Ombre Fertile",
+            "description": "Matériau ou trophée. (Insigne de l'Ombre Fertile)",
+            "type": "material",
+            "rarity": "rare",
+            "power": 0,
+            "value": 13
+          },
+          {
+            "id": "drop_ca7faf5e",
+            "name": "Insigne de l'Ombre Fertile",
+            "description": "Matériau ou trophée. (Insigne de l'Ombre Fertile)",
+            "type": "material",
+            "rarity": "rare",
+            "power": 0,
+            "value": 13
+          },
+          {
+            "id": "drop_6dd3d5f0",
+            "name": "Cape de Brume",
+            "description": "Protection arrachée à Rôdeur des Racines.",
+            "type": "armor",
+            "rarity": "rare",
+            "power": 17,
+            "value": 46
+          },
+          {
+            "id": "drop_81407ddb",
+            "name": "Cape de Brume",
+            "description": "Protection arrachée à Rôdeur des Racines.",
+            "type": "armor",
+            "rarity": "rare",
+            "power": 15,
+            "value": 42
+          },
+          {
+            "id": "drop_55295f59",
+            "name": "Lame d'Ombre Fêlée",
+            "description": "Arme récupérée sur Écho de la Fracture — encore utilisable.",
+            "type": "weapon",
+            "rarity": "rare",
+            "power": 19,
+            "value": 53
+          },
+          {
+            "id": "drop_b7045fd7",
+            "name": "Os Gravé d'A.F.",
+            "description": "Matériau ou trophée laissé par Écho de la Fracture.",
+            "type": "material",
+            "rarity": "rare",
+            "power": 0,
+            "value": 13
+          },
+          {
+            "id": "drop_0998e65c",
+            "name": "Lame de Braconnier",
+            "description": "Arme récupérée sur Écho de la Fracture — encore utilisable.",
+            "type": "weapon",
+            "rarity": "rare",
+            "power": 19,
+            "value": 53
+          },
+          {
+            "id": "drop_c3d60d53",
+            "name": "Lingot d'Aurichalque Impur",
+            "description": "Matériau ou trophée laissé par Golem de Scories.",
+            "type": "material",
+            "rarity": "uncommon",
+            "power": 0,
+            "value": 9
+          },
+          {
+            "id": "drop_1f040240",
+            "name": "Hache de Scories",
+            "description": "Arme récupérée sur Golem de Scories — encore utilisable.",
+            "type": "weapon",
+            "rarity": "uncommon",
+            "power": 15,
+            "value": 45
+          },
+          {
+            "id": "drop_46321522",
+            "name": "Épée Courte de Veilleur",
+            "description": "Arme récupérée sur Golem de Scories — encore utilisable.",
+            "type": "weapon",
+            "rarity": "uncommon",
+            "power": 15,
+            "value": 45
+          },
+          {
+            "id": "drop_0d05f336",
+            "name": "Coutelas des Quais",
+            "description": "Matériau ou trophée laissé par Coupe-Jarret des Quais.",
+            "type": "material",
+            "rarity": "common",
+            "power": 0,
+            "value": 5
+          },
+          {
+            "id": "drop_69819118",
+            "name": "Bourse Légère",
+            "description": "Matériau ou trophée laissé par Coupe-Jarret des Quais.",
+            "type": "material",
+            "rarity": "common",
+            "power": 0,
+            "value": 5
+          },
+          {
+            "id": "drop_b16157aa",
+            "name": "Coutelas des Quais",
+            "description": "Matériau ou trophée laissé par Coupe-Jarret des Quais.",
+            "type": "material",
+            "rarity": "common",
+            "power": 0,
+            "value": 5
+          },
+          {
+            "id": "drop_055f433f",
+            "name": "Bourse Légère",
+            "description": "Matériau ou trophée laissé par Coupe-Jarret des Quais.",
+            "type": "material",
+            "rarity": "common",
+            "power": 0,
+            "value": 5
+          },
+          {
+            "id": "aethel_phial",
+            "name": "Fiole d'Aéthel Dilué",
+            "description": "Liquide doré rationné par le Clergé — ranime les canaux magiques.",
+            "type": "potion",
+            "rarity": "uncommon",
+            "power": 50,
+            "value": 20
+          },
+          {
+            "id": "drop_8cd97ec5",
+            "name": "Lingot d'Aurichalque Impur",
+            "description": "Matériau ou trophée laissé par Golem de Scories.",
+            "type": "material",
+            "rarity": "uncommon",
+            "power": 0,
+            "value": 9
+          },
+          {
+            "id": "drop_f84a114c",
+            "name": "Hache de Scories",
+            "description": "Arme récupérée sur Golem de Scories — encore utilisable.",
+            "type": "weapon",
+            "rarity": "uncommon",
+            "power": 17,
+            "value": 49
+          },
+          {
+            "id": "drop_c0af8497",
+            "name": "Poussière d'Abysse",
+            "description": "Matériau ou trophée laissé par Misérable des Murmures.",
+            "type": "material",
+            "rarity": "uncommon",
+            "power": 0,
+            "value": 9
+          },
+          {
+            "id": "drop_964265b6",
+            "name": "Dague de Braconnier",
+            "description": "Arme récupérée sur Misérable des Murmures — encore utilisable.",
+            "type": "weapon",
+            "rarity": "uncommon",
+            "power": 17,
+            "value": 49
+          },
+          {
+            "id": "drop_febfa4c9",
+            "name": "Dague Rouillée des Marches",
+            "description": "Arme récupérée sur Misérable des Murmures — encore utilisable.",
+            "type": "weapon",
+            "rarity": "uncommon",
+            "power": 17,
+            "value": 49
+          },
+          {
+            "id": "drop_dc3ee803",
+            "name": "Poussière d'Abysse",
+            "description": "Matériau ou trophée laissé par Misérable des Murmures.",
+            "type": "material",
+            "rarity": "uncommon",
+            "power": 0,
+            "value": 9
+          },
+          {
+            "id": "drop_86eac87a",
+            "name": "Dague de Braconnier",
+            "description": "Arme récupérée sur Misérable des Murmures — encore utilisable.",
+            "type": "weapon",
+            "rarity": "uncommon",
+            "power": 18,
+            "value": 51
+          },
+          {
+            "id": "drop_7535a73b",
+            "name": "Lame de Braconnier",
+            "description": "Arme récupérée sur Misérable des Murmures — encore utilisable.",
+            "type": "weapon",
+            "rarity": "uncommon",
+            "power": 15,
+            "value": 45
+          },
+          {
+            "id": "drop_053ee7c0",
+            "name": "Poussière d'Abysse",
+            "description": "Matériau ou trophée laissé par Misérable des Murmures.",
+            "type": "material",
+            "rarity": "uncommon",
+            "power": 0,
+            "value": 10
+          },
+          {
+            "id": "drop_9d1c1001",
+            "name": "Dague de Braconnier",
+            "description": "Arme récupérée sur Misérable des Murmures — encore utilisable.",
+            "type": "weapon",
+            "rarity": "uncommon",
+            "power": 18,
+            "value": 51
+          },
+          {
+            "id": "drop_600263b1",
+            "name": "Cape de Brume",
+            "description": "Protection arrachée à Misérable des Murmures.",
+            "type": "armor",
+            "rarity": "uncommon",
+            "power": 14,
+            "value": 40
+          },
+          {
+            "id": "drop_9dfd412b",
+            "name": "Poussière d'Abysse",
+            "description": "Matériau ou trophée laissé par Misérable des Murmures.",
+            "type": "material",
+            "rarity": "uncommon",
+            "power": 0,
+            "value": 10
+          },
+          {
+            "id": "drop_ce6034fe",
+            "name": "Dague de Braconnier",
+            "description": "Arme récupérée sur Misérable des Murmures — encore utilisable.",
+            "type": "weapon",
+            "rarity": "uncommon",
+            "power": 17,
+            "value": 49
           }
         ],
+        "equipped_weapon": "start_weapon",
+        "equipped_armor": "start_armor",
         "skills": [
           {
             "name": "Vole de compétence",
-            "description": "Sort unique insufflé par le Concepteur.",
-            "cost": 4,
-            "power": 25,
-            "type": "attack"
+            "description": "Vole de compétence dévore l'énergie vitale de la cible pour vous la rendre. · Drain / Vol — dégâts ~22 + vol de vie",
+            "cost": 9,
+            "power": 22,
+            "type": "attack",
+            "effect": "DRAIN",
+            "effect_label": "Drain / Vol",
+            "flavor": "physical",
+            "duration": 0
           },
           {
-            "name": "Gloutonie",
-            "description": "Sort unique insufflé par le Concepteur.",
-            "cost": 4,
-            "power": 25,
-            "type": "attack"
+            "name": "Gloutonerie",
+            "description": "Gloutonerie frappe avec une puissance concentrée, sans détour. · Dégâts directs — dégâts ~22",
+            "cost": 9,
+            "power": 22,
+            "type": "attack",
+            "effect": "DAMAGE_DIRECT",
+            "effect_label": "Dégâts directs",
+            "flavor": "physical",
+            "duration": 0
           },
           {
             "name": "Anomie",
-            "description": "Sort unique insufflé par le Concepteur.",
-            "cost": 4,
-            "power": 25,
-            "type": "attack"
+            "description": "Anomie brise le moral : la cible vacille sous la pression mentale. · [terror] Altération mentale — gêne l'ennemi (3 tours)",
+            "cost": 12,
+            "power": 26,
+            "type": "attack",
+            "effect": "PSYCHOLOGICAL_DEBUFF",
+            "effect_label": "Altération mentale",
+            "flavor": "terror",
+            "duration": 3
           },
           {
             "name": "Dieu du vide",
-            "description": "Sort unique insufflé par le Concepteur.",
-            "cost": 4,
-            "power": 25,
-            "type": "attack"
+            "description": "Dieu du vide ouvre une faille d'ombre et de néant qui lacère la cible. · [shadow] Dégâts directs — dégâts ~30",
+            "cost": 15,
+            "power": 30,
+            "type": "attack",
+            "effect": "DAMAGE_DIRECT",
+            "effect_label": "Dégâts directs",
+            "flavor": "shadow",
+            "duration": 0
+          },
+          {
+            "name": "Murmure du Gouffre",
+            "description": "Une terreur froide qui siphonne l'élan vital de l'adversaire.",
+            "cost": 10,
+            "power": 26,
+            "type": "attack",
+            "effect": "DRAIN",
+            "effect_label": "Drain / Vol",
+            "flavor": "terror",
+            "duration": 0
+          },
+          {
+            "name": "Litanie de l'Aube",
+            "description": "Une prière brève qui referme les blessures sous le Dôme d'Or.",
+            "cost": 10,
+            "power": 26,
+            "type": "heal",
+            "effect": "HEAL",
+            "effect_label": "Soin",
+            "flavor": "holy",
+            "duration": 0
           }
         ],
-        "room_id": "town_square",
-        "evolution_history": []
+        "shield": 0,
+        "evade_charges": 0,
+        "reflect_percent": 0,
+        "room_id": "gouffre_lisiere",
+        "evolution_history": [
+          {
+            "level": 5,
+            "old_class": "Dieu du vide",
+            "new_class": "Dieu du vide d'Aurelia-Secundus",
+            "reason": "Au niveau 5, la voie de Dieu du vide (Créature céleste) s'affine autour de la Esprit — foi / Vide intérieur. Le Monde-Frontière exige une forme plus nette.",
+            "added_skills": [
+              "Murmure du Gouffre",
+              "Litanie de l'Aube"
+            ]
+          }
+        ]
       }
     }
-  }
+  },
+  "market": [
+    {
+      "id": "mkt_7017b653",
+      "item": {
+        "id": "shop_potion_f7eb43",
+        "name": "Potion de Soin Mineure",
+        "description": "Fiole tiède qui referme les plaies légères.",
+        "type": "potion",
+        "rarity": "common",
+        "power": 30,
+        "value": 18
+      },
+      "seller_id": "shop:comptoir_aube",
+      "seller_name": "Comptoir de l'Aube",
+      "shop_id": "comptoir_aube",
+      "listed_at": 1785621998
+    },
+    {
+      "id": "mkt_fc5ec827",
+      "item": {
+        "id": "shop_potion_a0b350",
+        "name": "Potion de Soin Mineure",
+        "description": "Fiole tiède qui referme les plaies légères.",
+        "type": "potion",
+        "rarity": "common",
+        "power": 30,
+        "value": 18
+      },
+      "seller_id": "shop:comptoir_aube",
+      "seller_name": "Comptoir de l'Aube",
+      "shop_id": "comptoir_aube",
+      "listed_at": 1785621998
+    },
+    {
+      "id": "mkt_0ff4123b",
+      "item": {
+        "id": "shop_torch_422931",
+        "name": "Torche Runique",
+        "description": "Matériau d'éclairage pour les marches.",
+        "type": "material",
+        "rarity": "common",
+        "power": 0,
+        "value": 6
+      },
+      "seller_id": "shop:comptoir_aube",
+      "seller_name": "Comptoir de l'Aube",
+      "shop_id": "comptoir_aube",
+      "listed_at": 1785621998
+    },
+    {
+      "id": "mkt_d3c8c9cd",
+      "item": {
+        "id": "shop_torch_9e4805",
+        "name": "Torche Runique",
+        "description": "Matériau d'éclairage pour les marches.",
+        "type": "material",
+        "rarity": "common",
+        "power": 0,
+        "value": 6
+      },
+      "seller_id": "shop:comptoir_aube",
+      "seller_name": "Comptoir de l'Aube",
+      "shop_id": "comptoir_aube",
+      "listed_at": 1785621998
+    },
+    {
+      "id": "mkt_4d512787",
+      "item": {
+        "id": "shop_ration_3fffef",
+        "name": "Ration de Voyageur",
+        "description": "Pain et sel de faille.",
+        "type": "potion",
+        "rarity": "common",
+        "power": 15,
+        "value": 10
+      },
+      "seller_id": "shop:comptoir_aube",
+      "seller_name": "Comptoir de l'Aube",
+      "shop_id": "comptoir_aube",
+      "listed_at": 1785621998
+    },
+    {
+      "id": "mkt_41bd4ec5",
+      "item": {
+        "id": "shop_ration_1a8796",
+        "name": "Ration de Voyageur",
+        "description": "Pain et sel de faille.",
+        "type": "potion",
+        "rarity": "common",
+        "power": 15,
+        "value": 10
+      },
+      "seller_id": "shop:comptoir_aube",
+      "seller_name": "Comptoir de l'Aube",
+      "shop_id": "comptoir_aube",
+      "listed_at": 1785621998
+    },
+    {
+      "id": "mkt_2bd6e099",
+      "item": {
+        "id": "shop_knife_4d1d74",
+        "name": "Couteau de Cuisine",
+        "description": "Lame courte — mieux que rien.",
+        "type": "weapon",
+        "rarity": "common",
+        "power": 6,
+        "value": 14
+      },
+      "seller_id": "shop:comptoir_aube",
+      "seller_name": "Comptoir de l'Aube",
+      "shop_id": "comptoir_aube",
+      "listed_at": 1785621998
+    },
+    {
+      "id": "mkt_eb9311b5",
+      "item": {
+        "id": "shop_knife_ae3924",
+        "name": "Couteau de Cuisine",
+        "description": "Lame courte — mieux que rien.",
+        "type": "weapon",
+        "rarity": "common",
+        "power": 6,
+        "value": 14
+      },
+      "seller_id": "shop:comptoir_aube",
+      "seller_name": "Comptoir de l'Aube",
+      "shop_id": "comptoir_aube",
+      "listed_at": 1785621998
+    },
+    {
+      "id": "mkt_93c8bac2",
+      "item": {
+        "id": "forge_blade_522ad4",
+        "name": "Lame d'Apprenti",
+        "description": "Acier de Sol-Gravis, trempe correcte.",
+        "type": "weapon",
+        "rarity": "uncommon",
+        "power": 14,
+        "value": 40
+      },
+      "seller_id": "shop:enclume_publique",
+      "seller_name": "Enclume Publique",
+      "shop_id": "enclume_publique",
+      "listed_at": 1785621998
+    },
+    {
+      "id": "mkt_6f61504a",
+      "item": {
+        "id": "forge_blade_32c526",
+        "name": "Lame d'Apprenti",
+        "description": "Acier de Sol-Gravis, trempe correcte.",
+        "type": "weapon",
+        "rarity": "uncommon",
+        "power": 14,
+        "value": 40
+      },
+      "seller_id": "shop:enclume_publique",
+      "seller_name": "Enclume Publique",
+      "shop_id": "enclume_publique",
+      "listed_at": 1785621998
+    },
+    {
+      "id": "mkt_5d7ac22f",
+      "item": {
+        "id": "forge_hammer_1ce17d",
+        "name": "Marteau de Forge Léger",
+        "description": "Bon à casser des casques.",
+        "type": "weapon",
+        "rarity": "uncommon",
+        "power": 16,
+        "value": 48
+      },
+      "seller_id": "shop:enclume_publique",
+      "seller_name": "Enclume Publique",
+      "shop_id": "enclume_publique",
+      "listed_at": 1785621998
+    },
+    {
+      "id": "mkt_a0af9f77",
+      "item": {
+        "id": "forge_hammer_737892",
+        "name": "Marteau de Forge Léger",
+        "description": "Bon à casser des casques.",
+        "type": "weapon",
+        "rarity": "uncommon",
+        "power": 16,
+        "value": 48
+      },
+      "seller_id": "shop:enclume_publique",
+      "seller_name": "Enclume Publique",
+      "shop_id": "enclume_publique",
+      "listed_at": 1785621998
+    },
+    {
+      "id": "mkt_0d4f6b73",
+      "item": {
+        "id": "forge_mail_fa10f8",
+        "name": "Cotte de Mailles Rousse",
+        "description": "Protection fumée des forges.",
+        "type": "armor",
+        "rarity": "uncommon",
+        "power": 10,
+        "value": 36
+      },
+      "seller_id": "shop:enclume_publique",
+      "seller_name": "Enclume Publique",
+      "shop_id": "enclume_publique",
+      "listed_at": 1785621998
+    },
+    {
+      "id": "mkt_a729a58a",
+      "item": {
+        "id": "forge_mail_0dbff2",
+        "name": "Cotte de Mailles Rousse",
+        "description": "Protection fumée des forges.",
+        "type": "armor",
+        "rarity": "uncommon",
+        "power": 10,
+        "value": 36
+      },
+      "seller_id": "shop:enclume_publique",
+      "seller_name": "Enclume Publique",
+      "shop_id": "enclume_publique",
+      "listed_at": 1785621998
+    },
+    {
+      "id": "mkt_32fc19db",
+      "item": {
+        "id": "forge_plate_83fe07",
+        "name": "Plaque d'Aurichalque Impur",
+        "description": "Défense lourde, encore imparfaite.",
+        "type": "armor",
+        "rarity": "rare",
+        "power": 18,
+        "value": 90
+      },
+      "seller_id": "shop:enclume_publique",
+      "seller_name": "Enclume Publique",
+      "shop_id": "enclume_publique",
+      "listed_at": 1785621998
+    },
+    {
+      "id": "mkt_9ec90433",
+      "item": {
+        "id": "forge_plate_603b69",
+        "name": "Plaque d'Aurichalque Impur",
+        "description": "Défense lourde, encore imparfaite.",
+        "type": "armor",
+        "rarity": "rare",
+        "power": 18,
+        "value": 90
+      },
+      "seller_id": "shop:enclume_publique",
+      "seller_name": "Enclume Publique",
+      "shop_id": "enclume_publique",
+      "listed_at": 1785621998
+    },
+    {
+      "id": "mkt_005e0ecd",
+      "item": {
+        "id": "trade_rope_3aba9d",
+        "name": "Corde de Nuées",
+        "description": "Fibre aérienne pour l'abordage.",
+        "type": "material",
+        "rarity": "common",
+        "power": 0,
+        "value": 12
+      },
+      "seller_id": "shop:nid_faucon",
+      "seller_name": "Nid de Faucon",
+      "shop_id": "nid_faucon",
+      "listed_at": 1785621998
+    },
+    {
+      "id": "mkt_1f39d22c",
+      "item": {
+        "id": "trade_rope_61e231",
+        "name": "Corde de Nuées",
+        "description": "Fibre aérienne pour l'abordage.",
+        "type": "material",
+        "rarity": "common",
+        "power": 0,
+        "value": 12
+      },
+      "seller_id": "shop:nid_faucon",
+      "seller_name": "Nid de Faucon",
+      "shop_id": "nid_faucon",
+      "listed_at": 1785621998
+    },
+    {
+      "id": "mkt_7ff6977a",
+      "item": {
+        "id": "trade_charm_ce6f68",
+        "name": "Amulette de Traversée",
+        "description": "Petite protection contre le vertige.",
+        "type": "armor",
+        "rarity": "uncommon",
+        "power": 7,
+        "value": 28
+      },
+      "seller_id": "shop:nid_faucon",
+      "seller_name": "Nid de Faucon",
+      "shop_id": "nid_faucon",
+      "listed_at": 1785621998
+    },
+    {
+      "id": "mkt_9ffe05b2",
+      "item": {
+        "id": "trade_charm_bcc005",
+        "name": "Amulette de Traversée",
+        "description": "Petite protection contre le vertige.",
+        "type": "armor",
+        "rarity": "uncommon",
+        "power": 7,
+        "value": 28
+      },
+      "seller_id": "shop:nid_faucon",
+      "seller_name": "Nid de Faucon",
+      "shop_id": "nid_faucon",
+      "listed_at": 1785621998
+    },
+    {
+      "id": "mkt_c0367523",
+      "item": {
+        "id": "trade_cutlass_42b9e4",
+        "name": "Sabre de Contrebandier",
+        "description": "Courbe et trop utilisée.",
+        "type": "weapon",
+        "rarity": "uncommon",
+        "power": 15,
+        "value": 44
+      },
+      "seller_id": "shop:nid_faucon",
+      "seller_name": "Nid de Faucon",
+      "shop_id": "nid_faucon",
+      "listed_at": 1785621998
+    },
+    {
+      "id": "mkt_c85b4290",
+      "item": {
+        "id": "trade_cutlass_6479e5",
+        "name": "Sabre de Contrebandier",
+        "description": "Courbe et trop utilisée.",
+        "type": "weapon",
+        "rarity": "uncommon",
+        "power": 15,
+        "value": 44
+      },
+      "seller_id": "shop:nid_faucon",
+      "seller_name": "Nid de Faucon",
+      "shop_id": "nid_faucon",
+      "listed_at": 1785621998
+    },
+    {
+      "id": "mkt_6314171f",
+      "item": {
+        "id": "salv_kit_d2272d",
+        "name": "Trousse de Campagne",
+        "description": "Bandages et huile de lame.",
+        "type": "potion",
+        "rarity": "common",
+        "power": 25,
+        "value": 16
+      },
+      "seller_id": "shop:poste_recup",
+      "seller_name": "Poste de Récupération",
+      "shop_id": "poste_recup",
+      "listed_at": 1785621998
+    },
+    {
+      "id": "mkt_a88aa0cc",
+      "item": {
+        "id": "salv_kit_5af1bc",
+        "name": "Trousse de Campagne",
+        "description": "Bandages et huile de lame.",
+        "type": "potion",
+        "rarity": "common",
+        "power": 25,
+        "value": 16
+      },
+      "seller_id": "shop:poste_recup",
+      "seller_name": "Poste de Récupération",
+      "shop_id": "poste_recup",
+      "listed_at": 1785621998
+    },
+    {
+      "id": "mkt_2675bde9",
+      "item": {
+        "id": "salv_spear_71cc98",
+        "name": "Lance de Sentinelle",
+        "description": "Fer de récupération remis en état.",
+        "type": "weapon",
+        "rarity": "common",
+        "power": 11,
+        "value": 26
+      },
+      "seller_id": "shop:poste_recup",
+      "seller_name": "Poste de Récupération",
+      "shop_id": "poste_recup",
+      "listed_at": 1785621998
+    },
+    {
+      "id": "mkt_cef6b8dc",
+      "item": {
+        "id": "salv_spear_1cf848",
+        "name": "Lance de Sentinelle",
+        "description": "Fer de récupération remis en état.",
+        "type": "weapon",
+        "rarity": "common",
+        "power": 11,
+        "value": 26
+      },
+      "seller_id": "shop:poste_recup",
+      "seller_name": "Poste de Récupération",
+      "shop_id": "poste_recup",
+      "listed_at": 1785621998
+    },
+    {
+      "id": "mkt_5b640d88",
+      "item": {
+        "id": "ebon_dust_424d08",
+        "name": "Poussière d'Ébène",
+        "description": "Résidu du monolithe — matière première.",
+        "type": "material",
+        "rarity": "uncommon",
+        "power": 0,
+        "value": 20
+      },
+      "seller_id": "shop:brocante_coeur",
+      "seller_name": "Brocante du Cœur",
+      "shop_id": "brocante_coeur",
+      "listed_at": 1785621998
+    },
+    {
+      "id": "mkt_8ef3e191",
+      "item": {
+        "id": "ebon_dust_025b98",
+        "name": "Poussière d'Ébène",
+        "description": "Résidu du monolithe — matière première.",
+        "type": "material",
+        "rarity": "uncommon",
+        "power": 0,
+        "value": 20
+      },
+      "seller_id": "shop:brocante_coeur",
+      "seller_name": "Brocante du Cœur",
+      "shop_id": "brocante_coeur",
+      "listed_at": 1785621998
+    },
+    {
+      "id": "mkt_9debb3d8",
+      "item": {
+        "id": "ebon_dagger_a84c06",
+        "name": "Dague de Paria",
+        "description": "Lame noire ébréchée.",
+        "type": "weapon",
+        "rarity": "uncommon",
+        "power": 13,
+        "value": 34
+      },
+      "seller_id": "shop:brocante_coeur",
+      "seller_name": "Brocante du Cœur",
+      "shop_id": "brocante_coeur",
+      "listed_at": 1785621998
+    },
+    {
+      "id": "mkt_fd06046d",
+      "item": {
+        "id": "ebon_dagger_248a5c",
+        "name": "Dague de Paria",
+        "description": "Lame noire ébréchée.",
+        "type": "weapon",
+        "rarity": "uncommon",
+        "power": 13,
+        "value": 34
+      },
+      "seller_id": "shop:brocante_coeur",
+      "seller_name": "Brocante du Cœur",
+      "shop_id": "brocante_coeur",
+      "listed_at": 1785621998
+    },
+    {
+      "id": "mkt_bd6156ca",
+      "item": {
+        "id": "drop_46b123d9",
+        "name": "Dague de Phosphore",
+        "description": "Arme récupérée — encore utilisable. (Dague de Phosphore)",
+        "type": "weapon",
+        "rarity": "rare",
+        "power": 20,
+        "value": 55
+      },
+      "seller_id": "vinapol",
+      "seller_name": "Azathot",
+      "shop_id": "comptoir_aube",
+      "listed_at": 1785622162
+    },
+    {
+      "id": "mkt_9f205e37",
+      "item": {
+        "id": "drop_9932c8bd",
+        "name": "Dague de Phosphore",
+        "description": "Arme récupérée — encore utilisable. (Dague de Phosphore)",
+        "type": "weapon",
+        "rarity": "rare",
+        "power": 20,
+        "value": 55
+      },
+      "seller_id": "vinapol",
+      "seller_name": "Azathot",
+      "shop_id": "comptoir_aube",
+      "listed_at": 1785622517
+    },
+    {
+      "id": "mkt_c077e022",
+      "item": {
+        "id": "drop_decd08ce",
+        "name": "Dague de Phosphore",
+        "description": "Arme récupérée sur Rôdeur des Racines — encore utilisable.",
+        "type": "weapon",
+        "rarity": "rare",
+        "power": 18,
+        "value": 51
+      },
+      "seller_id": "vinapol",
+      "seller_name": "Azathot",
+      "shop_id": "comptoir_aube",
+      "listed_at": 1785622521
+    },
+    {
+      "id": "mkt_1ddf7a8d",
+      "item": {
+        "id": "drop_324ca4a9",
+        "name": "Dague de Phosphore",
+        "description": "Arme récupérée sur Rôdeur des Racines — encore utilisable.",
+        "type": "weapon",
+        "rarity": "rare",
+        "power": 20,
+        "value": 55
+      },
+      "seller_id": "vinapol",
+      "seller_name": "Azathot",
+      "shop_id": "comptoir_aube",
+      "listed_at": 1785622523
+    },
+    {
+      "id": "mkt_77bfc49f",
+      "item": {
+        "id": "drop_f95e48ad",
+        "name": "Dague de Phosphore",
+        "description": "Arme récupérée — encore utilisable. (Dague de Phosphore)",
+        "type": "weapon",
+        "rarity": "rare",
+        "power": 20,
+        "value": 55
+      },
+      "seller_id": "vinapol",
+      "seller_name": "Azathot",
+      "shop_id": "comptoir_aube",
+      "listed_at": 1785622527
+    },
+    {
+      "id": "mkt_6a050919",
+      "item": {
+        "id": "drop_164d0810",
+        "name": "Minerai de Fer",
+        "description": "Matériau ou trophée. (Minerai de Fer)",
+        "type": "material",
+        "rarity": "uncommon",
+        "power": 0,
+        "value": 9
+      },
+      "seller_id": "vinapol",
+      "seller_name": "Azathot",
+      "shop_id": "comptoir_aube",
+      "listed_at": 1785622535
+    },
+    {
+      "id": "mkt_c255fd52",
+      "item": {
+        "id": "drop_2b603ca4",
+        "name": "Pioche Brisée",
+        "description": "Arme récupérée — encore utilisable. (Pioche Brisée)",
+        "type": "weapon",
+        "rarity": "uncommon",
+        "power": 16,
+        "value": 47
+      },
+      "seller_id": "vinapol",
+      "seller_name": "Azathot",
+      "shop_id": "comptoir_aube",
+      "listed_at": 1785622535
+    },
+    {
+      "id": "mkt_33750715",
+      "item": {
+        "id": "drop_301977d4",
+        "name": "Fourrure de Loup",
+        "description": "Matériau ou trophée. (Fourrure de Loup)",
+        "type": "material",
+        "rarity": "common",
+        "power": 0,
+        "value": 5
+      },
+      "seller_id": "vinapol",
+      "seller_name": "Azathot",
+      "shop_id": "comptoir_aube",
+      "listed_at": 1785622539
+    },
+    {
+      "id": "mkt_6aa9488b",
+      "item": {
+        "id": "drop_aea1d281",
+        "name": "Dent de Loup",
+        "description": "Matériau ou trophée. (Dent de Loup)",
+        "type": "material",
+        "rarity": "common",
+        "power": 0,
+        "value": 5
+      },
+      "seller_id": "vinapol",
+      "seller_name": "Azathot",
+      "shop_id": "comptoir_aube",
+      "listed_at": 1785622540
+    },
+    {
+      "id": "mkt_4cf420ac",
+      "item": {
+        "id": "drop_58a5d258",
+        "name": "Corde Runique",
+        "description": "Matériau ou trophée. (Corde Runique)",
+        "type": "material",
+        "rarity": "common",
+        "power": 0,
+        "value": 5
+      },
+      "seller_id": "vinapol",
+      "seller_name": "Azathot",
+      "shop_id": "comptoir_aube",
+      "listed_at": 1785622541
+    },
+    {
+      "id": "mkt_6c1fcf4c",
+      "item": {
+        "id": "drop_ffee674b",
+        "name": "Bourse Légère",
+        "description": "Matériau ou trophée. (Bourse Légère)",
+        "type": "material",
+        "rarity": "common",
+        "power": 0,
+        "value": 5
+      },
+      "seller_id": "vinapol",
+      "seller_name": "Azathot",
+      "shop_id": "comptoir_aube",
+      "listed_at": 1785622541
+    }
+  ]
 }

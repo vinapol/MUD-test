@@ -1,12 +1,23 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Heart, Sparkles, Coins, Trophy, Briefcase, Shield, Sword, UserPlus, Dna, ShieldAlert, ArrowUpRight } from 'lucide-react';
 
-export function StatsPanel({ player, onSendCommand }) {
+const DnD_MIME = 'application/x-kenoma-item';
+
+function itemById(inventory, id) {
+  if (!id || !inventory) return null;
+  return inventory.find((i) => i.id === id) || null;
+}
+
+export function StatsPanel({ player, onSendCommand, onOpenEquipment, onEquipItem, onUnequipSlot }) {
+  const [dragOverSlot, setDragOverSlot] = useState(null);
+
   if (!player) return null;
 
   const hpPercentage = Math.max(0, Math.min(100, (player.hp / player.max_hp) * 100));
   const manaPercentage = Math.max(0, Math.min(100, (player.mana / player.max_mana) * 100));
   const xpPercentage = Math.max(0, Math.min(100, (player.xp / player.next_xp) * 100));
+  const weapon = itemById(player.inventory, player.equipped_weapon);
+  const armor = itemById(player.inventory, player.equipped_armor);
 
   const getRarityColor = (rarity) => {
     switch (rarity?.toLowerCase()) {
@@ -54,12 +65,70 @@ export function StatsPanel({ player, onSendCommand }) {
     }
   };
 
+  const onItemDragStart = (e, item) => {
+    if (item.type !== 'weapon' && item.type !== 'armor') {
+      e.preventDefault();
+      return;
+    }
+    const payload = JSON.stringify({ name: item.name, type: item.type, id: item.id });
+    e.dataTransfer.setData(DnD_MIME, payload);
+    e.dataTransfer.setData('text/plain', item.name);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const onItemDragEnd = () => setDragOverSlot(null);
+
+  const onSlotDragOver = (e, slot) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverSlot(slot);
+  };
+
+  const onSlotDrop = (e, slot) => {
+    e.preventDefault();
+    setDragOverSlot(null);
+    let data = e.dataTransfer.getData(DnD_MIME);
+    const doEquip = (item) => {
+      if (onEquipItem) onEquipItem(item);
+      else onSendCommand?.(`equip ${item.id ? `#${item.id}` : item.name}`);
+    };
+    if (!data) {
+      const raw = e.dataTransfer.getData('text/plain');
+      if (!raw) return;
+      doEquip({ id: raw.startsWith('#') ? raw.slice(1) : raw, name: raw });
+      return;
+    }
+    try {
+      const item = JSON.parse(data);
+      if (slot === 'weapon' && item.type !== 'weapon') {
+        window.dispatchEvent(new CustomEvent('mud-toast', { detail: 'Déposez une arme ici.' }));
+        return;
+      }
+      if (slot === 'armor' && item.type !== 'armor') {
+        window.dispatchEvent(new CustomEvent('mud-toast', { detail: 'Déposez une armure ici.' }));
+        return;
+      }
+      doEquip(item);
+    } catch {
+      /* ignore */
+    }
+  };
+
   return (
     <div className="flex flex-col h-full glass-panel overflow-hidden border border-[var(--border-color)]">
       {/* Header */}
-      <div className="flex items-center gap-2 px-4 py-2 border-b border-[var(--border-color)] bg-[rgba(0,0,0,0.4)]">
-        <Trophy size={16} className="text-[var(--color-gold)]" />
-        <span className="text-xs uppercase tracking-wider font-semibold text-[var(--color-muted)] font-mono">Fiche Aventurier D&D</span>
+      <div className="flex items-center justify-between px-4 py-2 border-b border-[var(--border-color)] bg-[rgba(0,0,0,0.4)]">
+        <div className="flex items-center gap-2">
+          <Trophy size={16} className="text-[var(--color-gold)]" />
+          <span className="text-xs uppercase tracking-wider font-semibold text-[var(--color-muted)] font-mono">Fiche Aventurier</span>
+        </div>
+        <button
+          type="button"
+          onClick={() => onOpenEquipment?.()}
+          className="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-[rgba(6,182,212,0.35)] text-[9px] font-bold uppercase tracking-wider text-[var(--color-cyan)] hover:bg-[rgba(6,182,212,0.1)] transition-colors"
+        >
+          <Briefcase size={11} /> Équipement
+        </button>
       </div>
 
       <div className="flex-1 p-3 overflow-y-auto space-y-2.5 font-mono text-sm">
@@ -112,6 +181,24 @@ export function StatsPanel({ player, onSendCommand }) {
               />
             </div>
           </div>
+
+          {/* Shield */}
+          {(player.shield > 0) && (
+            <div>
+              <div className="flex justify-between text-xs mb-1 font-bold">
+                <span className="flex items-center gap-1 text-[var(--color-cyan)]">
+                  <Shield size={12} /> BOUCLIER
+                </span>
+                <span>{player.shield}</span>
+              </div>
+              <div className="progress-bar-container">
+                <div
+                  className="progress-bar-fill bg-[var(--color-cyan)] shadow-[0_0_8px_rgba(6,182,212,0.35)]"
+                  style={{ width: `${Math.min(100, (player.shield / Math.max(player.max_hp, 1)) * 100)}%` }}
+                />
+              </div>
+            </div>
+          )}
 
           {/* Mana */}
           <div>
@@ -242,41 +329,152 @@ export function StatsPanel({ player, onSendCommand }) {
           <span className="text-[var(--color-gold)] font-bold text-base">{player.gold} PO</span>
         </div>
 
-        {/* Inventory */}
+        {/* Inventory + drag & drop equipment */}
         <div className="flex flex-col">
-          <span className="flex items-center gap-1.5 text-xs text-[var(--color-muted)] font-bold mb-1.5 uppercase">
-            <Briefcase size={14} /> Inventaire ({player.inventory?.length || 0})
-          </span>
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="flex items-center gap-1.5 text-xs text-[var(--color-muted)] font-bold uppercase">
+              <Briefcase size={14} /> Inventaire ({player.inventory?.length || 0})
+            </span>
+            <button
+              type="button"
+              onClick={() => onOpenEquipment?.()}
+              className="text-[9px] font-bold uppercase text-[var(--color-cyan)] hover:text-white"
+            >
+              Gérer
+            </button>
+          </div>
+
+          <div className="grid grid-cols-2 gap-1.5 mb-2">
+            <EquipDropSlot
+              slot="weapon"
+              label="Arme"
+              powerLabel="ATK"
+              icon={<Sword size={12} />}
+              item={weapon}
+              dragOver={dragOverSlot === 'weapon'}
+              onDragOver={(e) => onSlotDragOver(e, 'weapon')}
+              onDragLeave={() => setDragOverSlot(null)}
+              onDrop={(e) => onSlotDrop(e, 'weapon')}
+              onUnequip={() => (onUnequipSlot ? onUnequipSlot('arme') : onSendCommand?.('unequip arme'))}
+            />
+            <EquipDropSlot
+              slot="armor"
+              label="Armure"
+              powerLabel="DEF"
+              icon={<Shield size={12} />}
+              item={armor}
+              dragOver={dragOverSlot === 'armor'}
+              onDragOver={(e) => onSlotDragOver(e, 'armor')}
+              onDragLeave={() => setDragOverSlot(null)}
+              onDrop={(e) => onSlotDrop(e, 'armor')}
+              onUnequip={() => (onUnequipSlot ? onUnequipSlot('armure') : onSendCommand?.('unequip armure'))}
+            />
+          </div>
+          <p className="text-[9px] text-[var(--color-muted)] mb-1.5">
+            Glissez une arme ou une armure sur un emplacement.
+          </p>
+
           <div className="border border-[rgba(255,255,255,0.05)] rounded-lg p-2 bg-[rgba(0,0,0,0.3)] overflow-y-auto space-y-1.5 max-h-[100px]">
             {!player.inventory || player.inventory.length === 0 ? (
               <div className="text-[var(--color-muted)] text-xs text-center py-3">
                 Votre inventaire est vide
               </div>
             ) : (
-              player.inventory.map((item, idx) => (
-                <div
-                  key={idx}
-                  className={`group relative flex flex-col p-2 border rounded-md text-xs transition-all ${getRarityColor(item.rarity)}`}
-                >
-                  <div className="flex justify-between items-center">
-                    <span className="font-semibold flex items-center gap-1">
-                      {getItemIcon(item.type)} {item.name}
-                    </span>
-                    {item.power > 0 && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-[rgba(255,255,255,0.05)] font-bold">
-                        +{item.power} {item.type === 'weapon' ? 'ATK' : item.type === 'armor' ? 'DEF' : 'HEAL'}
+              player.inventory.map((item, idx) => {
+                const equipped =
+                  item.id === player.equipped_weapon || item.id === player.equipped_armor;
+                const canDrag = item.type === 'weapon' || item.type === 'armor';
+                return (
+                  <div
+                    key={item.id || idx}
+                    draggable={canDrag}
+                    onDragStart={(e) => onItemDragStart(e, item)}
+                    onDragEnd={onItemDragEnd}
+                    onDoubleClick={() => {
+                      if (item.type === 'weapon' || item.type === 'armor') {
+                        if (onEquipItem) onEquipItem(item);
+                        else onSendCommand?.(`equip ${item.id ? `#${item.id}` : item.name}`);
+                      } else if (item.type === 'potion') {
+                        onSendCommand?.(`utiliser ${item.name}`);
+                      }
+                    }}
+                    className={`group relative flex flex-col p-2 border rounded-md text-xs transition-all ${
+                      equipped
+                        ? 'border-[rgba(16,185,129,0.65)] bg-[rgba(16,185,129,0.12)] text-[var(--color-emerald)]'
+                        : getRarityColor(item.rarity)
+                    } ${canDrag ? 'cursor-grab active:cursor-grabbing' : ''}`}
+                    title={canDrag ? 'Glisser vers Arme / Armure' : undefined}
+                  >
+                    <div className="flex justify-between items-center">
+                      <span className="font-semibold flex items-center gap-1">
+                        {getItemIcon(item.type)} {item.name}
                       </span>
-                    )}
+                      {item.power > 0 && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-[rgba(255,255,255,0.05)] font-bold">
+                          +{item.power} {item.type === 'weapon' ? 'ATK' : item.type === 'armor' ? 'DEF' : 'HEAL'}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-[10px] text-[var(--color-muted)] mt-1 group-hover:text-[var(--color-text)] transition-colors">
+                      {item.description}
+                    </span>
                   </div>
-                  <span className="text-[10px] text-[var(--color-muted)] mt-1 group-hover:text-[var(--color-text)] transition-colors">
-                    {item.description}
-                  </span>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function EquipDropSlot({
+  label,
+  powerLabel,
+  icon,
+  item,
+  dragOver,
+  onDragOver,
+  onDragLeave,
+  onDrop,
+  onUnequip,
+}) {
+  return (
+    <div
+      onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
+      onDrop={onDrop}
+      className={`rounded-lg border p-2 min-h-[64px] transition-all ${
+        dragOver
+          ? 'border-[var(--color-cyan)] bg-[rgba(6,182,212,0.12)] scale-[1.02]'
+          : 'border-[rgba(255,255,255,0.08)] bg-[rgba(0,0,0,0.25)]'
+      }`}
+    >
+      <div className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-[var(--color-muted)] mb-1">
+        {icon} {label}
+      </div>
+      {item ? (
+        <div className="space-y-1">
+          <div className="text-[11px] font-bold text-white leading-tight truncate" title={item.name}>
+            {item.name}
+          </div>
+          <div className="flex items-center justify-between gap-1">
+            <span className="text-[9px] font-bold text-[var(--color-cyan)]">+{item.power} {powerLabel}</span>
+            <button
+              type="button"
+              onClick={onUnequip}
+              className="text-[8px] font-bold uppercase text-[var(--color-muted)] hover:text-white"
+            >
+              Retirer
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="text-[9px] text-[var(--color-muted)] italic leading-tight pt-0.5">
+          Déposer ici
+        </div>
+      )}
     </div>
   );
 }
