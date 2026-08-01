@@ -52,9 +52,13 @@ type EvolutionHistory struct {
 type Skill struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
-	Cost        int    `json:"cost"` // Mana/Energy cost
+	Cost        int    `json:"cost"`
 	Power       int    `json:"power"`
-	Type        string `json:"type"` // "attack", "defense", "heal"
+	Type        string `json:"type"`          // attack | heal | defense (UI targeting)
+	Effect      string `json:"effect"`        // DAMAGE_DIRECT | HEAL | SHIELD | ...
+	EffectLabel string `json:"effect_label"`
+	Flavor      string `json:"flavor"`        // fire | poison | terror | ...
+	Duration    int    `json:"duration"`      // turns for lasting effects
 }
 
 // Item represents a game item, which can be procedurally generated.
@@ -70,14 +74,20 @@ type Item struct {
 
 // NPC represents a non-player character/monster, which can be procedurally generated.
 type NPC struct {
-	ID          string   `json:"id"`
-	Name        string   `json:"name"`
-	Description string   `json:"description"`
-	Rarity      string   `json:"rarity"`
-	HP          int      `json:"hp"`
-	MaxHP       int      `json:"max_hp"`
-	Attack      int      `json:"attack"`
-	Drops       []string `json:"drops,omitempty"`
+	ID          string         `json:"id"`
+	Name        string         `json:"name"`
+	Description string         `json:"description"`
+	Rarity      string         `json:"rarity"`
+	HP          int            `json:"hp"`
+	MaxHP       int            `json:"max_hp"`
+	Attack      int            `json:"attack"`
+	Drops       []string       `json:"drops,omitempty"`
+	Statuses     []StatusEffect `json:"statuses,omitempty"`
+	IsSummon    bool           `json:"is_summon,omitempty"`
+	SummonTurns int            `json:"summon_turns,omitempty"`
+	OwnerID     string         `json:"owner_id,omitempty"`
+	SpawnKey    string         `json:"spawn_key,omitempty"`  // template id for respawn cycle
+	NoRespawn   bool           `json:"no_respawn,omitempty"` // LLM one-shots, bosses, etc.
 }
 
 // Player represents an active player session in the game.
@@ -100,7 +110,14 @@ type Player struct {
 	ClassMultipliers StatMultipliers    `json:"class_multipliers"` // Class specific scaling
 	StatPoints       int                `json:"stat_points"`      // Unspent points
 	Inventory        []Item             `json:"inventory"`
+	EquippedWeapon   string             `json:"equipped_weapon,omitempty"` // item ID
+	EquippedArmor    string             `json:"equipped_armor,omitempty"`  // item ID
+	DefendTurns      int                `json:"-"`                         // parade stance (combat)
 	Skills           []Skill            `json:"skills"`
+	Shield           int                `json:"shield"`
+	EvadeCharges     int                `json:"evade_charges"`
+	ReflectPercent   float64            `json:"reflect_percent"`
+	Statuses          []StatusEffect     `json:"statuses,omitempty"`
 	RoomID           string             `json:"room_id"`
 	EvolutionHistory []EvolutionHistory `json:"evolution_history"`
 	Conn             *websocket.Conn    `json:"-"`
@@ -117,6 +134,7 @@ type Room struct {
 	Players     map[string]bool   `json:"players"` // playerID -> true
 	Items       []Item          `json:"items"`
 	NPCs        map[string]*NPC `json:"npcs"`
+	Hazard      *RoomHazard     `json:"hazard,omitempty"`
 	Mu          sync.Mutex      `json:"-"`
 }
 

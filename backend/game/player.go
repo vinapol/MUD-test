@@ -174,6 +174,88 @@ func (p *Player) Heal(amount int) {
 	}
 }
 
+// GainShield adds temporary absorb HP (stacks, capped).
+func (p *Player) GainShield(amount int) int {
+	p.Mu.Lock()
+	defer p.Mu.Unlock()
+	if amount < 0 {
+		amount = 0
+	}
+	p.Shield += amount
+	cap := p.MaxHP * 2
+	if cap < 40 {
+		cap = 40
+	}
+	if p.Shield > cap {
+		p.Shield = cap
+	}
+	return p.Shield
+}
+
+// ApplyDamage reduces shield first, then HP. Returns (hpLost, shieldAbsorbed, dead).
+// Applies armor DEF and active parade (DefendTurns).
+func (p *Player) ApplyDamage(amount int) (hpLost, shielded int, dead bool) {
+	p.Mu.Lock()
+	defer p.Mu.Unlock()
+	if amount < 0 {
+		amount = 0
+	}
+	if p.EvadeCharges > 0 {
+		p.EvadeCharges--
+		return 0, 0, false
+	}
+	if p.DefendTurns > 0 {
+		amount = amount / 2
+		p.DefendTurns--
+	}
+	armor := 0
+	if a := p.itemByIDLocked(p.EquippedArmor); a != nil && a.Type == "armor" {
+		armor = a.Power
+	}
+	amount -= armor / 2
+	if amount < 1 {
+		amount = 1
+	}
+	shielded = 0
+	if p.Shield > 0 {
+		if p.Shield >= amount {
+			p.Shield -= amount
+			shielded = amount
+			return 0, shielded, false
+		}
+		shielded = p.Shield
+		amount -= p.Shield
+		p.Shield = 0
+	}
+	p.HP -= amount
+	hpLost = amount
+	if p.HP < 0 {
+		p.HP = 0
+	}
+	return hpLost, shielded, p.HP <= 0
+}
+
+// ConsumeReflect returns and clears pending reflect percent.
+func (p *Player) ConsumeReflect() float64 {
+	p.Mu.Lock()
+	defer p.Mu.Unlock()
+	r := p.ReflectPercent
+	p.ReflectPercent = 0
+	return r
+}
+
+// GrantCombatBuffs applies evade / reflect from a defense effect.
+func (p *Player) GrantCombatBuffs(evade int, reflectPct float64) {
+	p.Mu.Lock()
+	defer p.Mu.Unlock()
+	if evade > 0 {
+		p.EvadeCharges += evade
+	}
+	if reflectPct > p.ReflectPercent {
+		p.ReflectPercent = reflectPct
+	}
+}
+
 // ConsumeMana consumes mana if available, returning true. Returns false if insufficient.
 func (p *Player) ConsumeMana(amount int) bool {
 	p.Mu.Lock()

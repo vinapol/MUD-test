@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"mud-game/game"
@@ -22,10 +23,11 @@ type Client struct {
 
 // Request structure for Ollama API
 type ollamaRequest struct {
-	Model  string `json:"model"`
-	Prompt string `json:"prompt"`
-	Format string `json:"format"` // "json" forces JSON output
-	Stream bool   `json:"stream"`
+	Model   string                 `json:"model"`
+	Prompt  string                 `json:"prompt"`
+	Format  string                 `json:"format"` // "json" forces JSON output
+	Stream  bool                   `json:"stream"`
+	Options map[string]interface{} `json:"options,omitempty"`
 }
 
 // Response structure from Ollama API
@@ -34,34 +36,6 @@ type ollamaResponse struct {
 	Done     bool   `json:"done"`
 }
 
-// Combined concept JSON structure returned by the LLM
-type characterConceptResponse struct {
-	Race  game.Race        `json:"race"`
-	Class classConceptJSON `json:"class"`
-}
-
-type classConceptJSON struct {
-	Name          string               `json:"name"`
-	Description   string               `json:"description"`
-	Rarity        string               `json:"rarity"` // "common", "rare", "epic", "legendary", "unique"
-	DiceType      string               `json:"dice_type"` // "d20", "d100"
-	RollThreshold int                  `json:"roll_threshold"`
-	BaseStats     game.Attributes      `json:"base_stats"`
-	Multipliers   game.StatMultipliers `json:"multipliers"`
-	Skills        []LLMSkillJSON       `json:"skills"` // List of 4 evaluated skills
-	Inventory     []game.Item          `json:"inventory"`
-}
-
-type LLMSkillJSON struct {
-	Name          string `json:"name"`
-	Description   string `json:"description"`
-	Cost          int    `json:"cost"`
-	Power         int    `json:"power"`
-	Type          string `json:"type"` // "attack", "heal", "defense"
-	Rarity        string `json:"rarity"` // "common", "rare", "epic", "legendary", "unique"
-	DiceType      string `json:"dice_type"` // "d20", "d100"
-	RollThreshold int    `json:"roll_threshold"`
-}
 
 // NewClient creates a new Ollama client.
 func NewClient(baseURL, model string) *Client {
@@ -75,6 +49,7 @@ func NewClient(baseURL, model string) *Client {
 		BaseURL: baseURL,
 		Model:   model,
 		HTTPClient: &http.Client{
+			// Evolution / character prompts can be slow on first model load.
 			Timeout: 120 * time.Second,
 		},
 	}
@@ -91,21 +66,20 @@ func cryptoRandString(length int) string {
 
 // GenerateNPC calls Ollama to build a structured monster.
 func (c *Client) GenerateNPC(description string) (*game.NPC, error) {
-	prompt := fmt.Sprintf(`Génère un monstre ou PNJ de fantasy basé sur la description : "%s".
-Renvoie UNIQUEMENT un objet JSON valide correspondant exactement à ce schéma :
-{
-  "name": "Nom du monstre en français (ex: Squelette Brûlant)",
-  "description": "Une description courte et immersive en français (1 ou 2 phrases)",
-  "rarity": "rarete (choisir parmi: common, uncommon, rare, epic, legendary)",
-  "hp": integer (points de vie de départ, cohérent avec la rareté: common: 40-70, uncommon: 80-120, rare: 130-200, epic: 250-400, legendary: 500-1000),
-  "attack": integer (dégâts d'attaque de base, cohérent avec la rareté: common: 5-10, uncommon: 11-18, rare: 19-30, epic: 31-50, legendary: 51-100),
-  "drops": ["nom_objet_1", "nom_objet_2"] (liste de 1 à 3 objets récoltables à sa mort en français)
-}
+	prompt := fmt.Sprintf(`%s
 
-Règles strictes :
-1. Aucun texte en dehors du JSON.
-2. Le JSON doit être valide et parsable.
-3. Toutes les clés ci-dessus doivent être présentes.`, description)
+Génère un monstre ou PNJ hostile de Kenoma basé sur : "%s".
+Cohérent avec Aéthel / Vide / Marches / Gouffre / Skia / Aurelia.
+Renvoie UNIQUEMENT un JSON :
+{
+  "name": "Nom en français (ex: Écho Pétrifié du Gouffre)",
+  "description": "1-2 phrases immersives ancrées dans Kenoma",
+  "rarity": "common|uncommon|rare|epic|legendary",
+  "hp": integer (common 40-70, uncommon 80-120, rare 130-200, epic 250-400, legendary 500-1000),
+  "attack": integer (common 5-10, uncommon 11-18, rare 19-30, epic 31-50, legendary 51-100),
+  "drops": ["objet_1", "objet_2"] (1-3 butins thématiques Kenoma)
+}
+Aucun texte hors JSON.`, game.KenomaUniversePrompt(), description)
 
 	respBody, err := c.requestOllama(prompt)
 	if err != nil {
@@ -137,21 +111,19 @@ Règles strictes :
 
 // GenerateItem calls Ollama to build a structured equipment or loot.
 func (c *Client) GenerateItem(description string) (game.Item, error) {
-	prompt := fmt.Sprintf(`Génère un objet de fantasy (arme, armure, potion, ou butin) basé sur la description : "%s".
-Renvoie UNIQUEMENT un objet JSON valide correspondant exactement à ce schéma :
-{
-  "name": "Nom de l'objet en français (ex: Épée de Givre)",
-  "description": "Une description courte et immersive en français (1 ou 2 phrases)",
-  "type": "type d'objet (choisir uniquement parmi: weapon, armor, potion, loot)",
-  "rarity": "rarete (choisir uniquement parmi: common, uncommon, rare, epic, legendary)",
-  "power": integer (valeur numérique représentant sa puissance: si weapon, c'est l'attaque additionnelle ex: 5-50; si armor, la défense ex: 2-30; si potion, le soin ex: 20-150; si loot, mettre 0),
-  "value": integer (sa valeur marchande estimée en pièces d'or)
-}
+	prompt := fmt.Sprintf(`%s
 
-Règles strictes :
-1. Aucun texte en dehors du JSON.
-2. Le JSON doit être valide et parsable.
-3. Toutes les clés ci-dessus doivent être présentes.`, description)
+Génère un objet de Kenoma (arme, armure, potion, butin) basé sur : "%s".
+Thèmes : cristaux d'Aéthel, aurichalque, éclats de Nihil, reliques de Skia, insignes de Veilleurs.
+JSON UNIQUEMENT :
+{
+  "name": "Nom FR",
+  "description": "1-2 phrases immersives",
+  "type": "weapon|armor|potion|loot",
+  "rarity": "common|uncommon|rare|epic|legendary",
+  "power": integer,
+  "value": integer
+}`, game.KenomaUniversePrompt(), description)
 
 	respBody, err := c.requestOllama(prompt)
 	if err != nil {
@@ -180,155 +152,56 @@ Règles strictes :
 	return item, nil
 }
 
-// GenerateCharacterConcept compiles custom race, custom class, and 4 custom skills.
+// GenerateCharacterConcept asks the LLM only for descriptions, rarity and dice rules.
+// Stats/inventory are filled locally from those rarities (much faster than full JSON).
 func (c *Client) GenerateCharacterConcept(customClass, customRace string, customSkills []string) (interface{}, error) {
-	// Join skills list
-	skillsStr := "1. " + customSkills[0] + ", 2. " + customSkills[1] + ", 3. " + customSkills[2] + ", 4. " + customSkills[3]
-	
-	prompt := fmt.Sprintf(`Génère une race, une classe et évalue 4 compétences personnalisées basées sur les choix du joueur.
-Race choisie : "%s"
-Classe choisie : "%s"
-Compétences demandées : %s
+	for len(customSkills) < 4 {
+		customSkills = append(customSkills, fmt.Sprintf("Technique %d", len(customSkills)+1))
+	}
+	skillsStr := fmt.Sprintf(`["%s","%s","%s","%s"]`,
+		customSkills[0], customSkills[1], customSkills[2], customSkills[3])
 
-Renvoie UNIQUEMENT un objet JSON valide correspondant exactement à ce schéma :
-{
-  "race": {
-    "name": "Nom de la race en français",
-    "description": "Description en français",
-    "modifiers": { "str": int, "agi": int, "int": int, "con": int, "spi": int },
-    "multipliers": { "str": float, "agi": float, "int": float, "con": float, "spi": float },
-    "passive_name": "Nom du trait passif",
-    "passive_desc": "Description du passif"
-  },
-  "class": {
-    "name": "Nom de la classe en français",
-    "description": "Description narrative de la classe en français",
-    "rarity": "common|rare|epic|legendary|unique (évaluez la rareté du concept de classe)",
-    "dice_type": "d20|d100",
-    "roll_threshold": integer (seuil requis pour débloquer : si common: 0; si rare: 14; si epic: 70; si legendary: 88; si unique: 96),
-    "base_stats": { "str": int, "agi": int, "int": int, "con": int, "spi": int },
-    "multipliers": { "str": float, "agi": float, "int": float, "con": float, "spi": float },
-    "skills": [
-      {
-        "name": "Nom traduit/embelli de la Compétence 1",
-        "description": "Effet (en français)",
-        "cost": integer (coût mana),
-        "power": integer (puissance de base),
-        "type": "attack (ou 'defense' ou 'heal' selon la nature du sort)",
-        "rarity": "common|rare|epic|legendary|unique (évaluez la rareté de la compétence demandée)",
-        "dice_type": "d20|d100",
-        "roll_threshold": integer (seuil requis pour débloquer : si common: 0; si rare: 14; si epic: 70; si legendary: 88; si unique: 96)
-      },
-      {
-        "name": "Nom de la Compétence 2",
-        "description": "Effet",
-        "cost": integer,
-        "power": integer,
-        "type": "attack",
-        "rarity": "common|rare|epic|legendary|unique",
-        "dice_type": "d20|d100",
-        "roll_threshold": integer
-      },
-      {
-        "name": "Nom de la Compétence 3",
-        "description": "Effet",
-        "cost": integer,
-        "power": integer,
-        "type": "attack",
-        "rarity": "common|rare|epic|legendary|unique",
-        "dice_type": "d20|d100",
-        "roll_threshold": integer
-      },
-      {
-        "name": "Nom de la Compétence 4",
-        "description": "Effet",
-        "cost": integer,
-        "power": integer,
-        "type": "attack",
-        "rarity": "common|rare|epic|legendary|unique",
-        "dice_type": "d20|d100",
-        "roll_threshold": integer
-      }
-    ],
-    "inventory": [
-      {
-        "id": "item_1",
-        "name": "Nom équipement de départ",
-        "description": "Description",
-        "type": "weapon",
-        "rarity": "common",
-        "power": integer,
-        "value": integer
-      }
-    ]
-  }
-}
+	prompt := fmt.Sprintf(`%s
 
-Règles strictes :
-1. Aucun texte en dehors du JSON.
-2. Le JSON doit être valide et parsable.
-3. Évaluez la rareté de chaque compétence individuellement selon son nom et sa description.`, customRace, customClass, skillsStr)
+Tu es l'arbitre de Kenoma. Évalue classe et compétences dans cet univers (Aéthel vs Vide).
+Race: "%s"
+Classe: "%s"
+Compétences: %s
 
-	respBody, err := c.requestOllama(prompt)
+%s
+Pour CHAQUE compétence (OBLIGATOIRE):
+- description: UNE phrase immersive Kenoma (Aéthel, Vide, Pétrification, Marches…). INTERDIT le seul label mécanique.
+- type: attack|heal|defense
+- effect: UN id (DAMAGE_DIRECT, DAMAGE_OVER_TIME, HEAL, SHIELD, STAT_BUFF, STAT_DEBUFF, CROWD_CONTROL, PSYCHOLOGICAL_DEBUFF, DRAIN, DISPEL, SUMMON, ENVIRONMENTAL)
+- flavor: fire|ice|lightning|poison|bleed|holy|shadow|nature|arcane|terror|physical
+  (holy/arcane ≈ Aéthel ; shadow/terror ≈ Vide)
+- duration, rarity, dice_faces (20|100), roll_threshold, power, cost
+
+JSON UNIQUEMENT:
+{"race":{"description":"...","passive_name":"...","passive_desc":"..."},"class":{"name":"%s","description":"...","rarity":"rare","dice_faces":20,"roll_threshold":14},"skills":[{"name":"%s","description":"...","type":"attack","effect":"DAMAGE_OVER_TIME","flavor":"poison","duration":3,"rarity":"rare","dice_faces":20,"roll_threshold":14,"power":18,"cost":6},{"name":"%s","description":"...","type":"attack","effect":"DAMAGE_DIRECT","flavor":"shadow","duration":0,"rarity":"common","dice_faces":20,"roll_threshold":0,"power":12,"cost":4},{"name":"%s","description":"...","type":"heal","effect":"HEAL","flavor":"holy","duration":0,"rarity":"rare","dice_faces":20,"roll_threshold":14,"power":20,"cost":8},{"name":"%s","description":"...","type":"defense","effect":"SHIELD","flavor":"arcane","duration":0,"rarity":"common","dice_faces":20,"roll_threshold":0,"power":14,"cost":5}]}`,
+		game.KenomaUniversePrompt(), customRace, customClass, skillsStr, game.EffectCatalogForPrompt(),
+		customClass, customSkills[0], customSkills[1], customSkills[2], customSkills[3])
+
+	respBody, err := c.requestOllamaWithOptions(prompt, map[string]interface{}{
+		"temperature":    0.4,
+		"num_predict":    900,
+		"num_ctx":        4096,
+		"repeat_penalty": 1.1,
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	var concept characterConceptResponse
-	if err := json.Unmarshal([]byte(respBody), &concept); err != nil {
-		return nil, fmt.Errorf("erreur de validation du JSON de concept: %v (Brut: %s)", err, respBody)
+	var eval game.LLMRarityEval
+	if err := json.Unmarshal([]byte(respBody), &eval); err != nil {
+		return nil, fmt.Errorf("erreur JSON évaluation LLM: %v (Brut: %s)", err, respBody)
+	}
+	if eval.Class.Rarity == "" && eval.Class.Description == "" {
+		return nil, fmt.Errorf("évaluation LLM vide (Brut: %s)", respBody)
 	}
 
-	// Post-processing defaults for safety
-	if concept.Race.Name == "" {
-		concept.Race.Name = customRace
-	}
-	if concept.Class.Name == "" {
-		concept.Class.Name = customClass
-	}
-	if concept.Class.Rarity == "" {
-		concept.Class.Rarity = "common"
-	}
-	if concept.Class.DiceType == "" {
-		concept.Class.DiceType = "d20"
-	}
-	
-	// Post-processing ID names for equipment items
-	for i := range concept.Class.Inventory {
-		concept.Class.Inventory[i].ID = fmt.Sprintf("start_item_%s_%d", cryptoRandString(4), i)
-	}
-
-	// Ensure exactly 4 skills are returned
-	if len(concept.Class.Skills) < 4 {
-		// Fill in default placeholders
-		for len(concept.Class.Skills) < 4 {
-			concept.Class.Skills = append(concept.Class.Skills, LLMSkillJSON{
-				Name:          fmt.Sprintf("Technique Basique %d", len(concept.Class.Skills)+1),
-				Description:   "Coup simple infligeant des dégâts de base.",
-				Cost:          0,
-				Power:         10,
-				Type:          "attack",
-				Rarity:        "common",
-				DiceType:      "d20",
-				RollThreshold: 0,
-			})
-		}
-	}
-
-	// Fallback multipliers to 1.0 if unset
-	if concept.Race.Multipliers.STR <= 0.05 { concept.Race.Multipliers.STR = 1.0 }
-	if concept.Race.Multipliers.AGI <= 0.05 { concept.Race.Multipliers.AGI = 1.0 }
-	if concept.Race.Multipliers.INT <= 0.05 { concept.Race.Multipliers.INT = 1.0 }
-	if concept.Race.Multipliers.CON <= 0.05 { concept.Race.Multipliers.CON = 1.0 }
-	if concept.Race.Multipliers.SPI <= 0.05 { concept.Race.Multipliers.SPI = 1.0 }
-
-	if concept.Class.Multipliers.STR <= 0.05 { concept.Class.Multipliers.STR = 1.0 }
-	if concept.Class.Multipliers.AGI <= 0.05 { concept.Class.Multipliers.AGI = 1.0 }
-	if concept.Class.Multipliers.INT <= 0.05 { concept.Class.Multipliers.INT = 1.0 }
-	if concept.Class.Multipliers.CON <= 0.05 { concept.Class.Multipliers.CON = 1.0 }
-	if concept.Class.Multipliers.SPI <= 0.05 { concept.Class.Multipliers.SPI = 1.0 }
-
-	return concept, nil
+	base := game.BuildHeuristicConcept(customClass, customRace, customSkills)
+	return game.ApplyLLMEvaluation(base, eval), nil
 }
 
 // GenerateRace is deprecated.
@@ -337,49 +210,59 @@ func (c *Client) GenerateRace(description string) (game.Race, error) {
 }
 
 // EvolutionResult is the structure mapping Ollama subclasses generation.
-type EvolutionResult struct {
-	NewClassName string      `json:"new_class_name"`
-	Description  string      `json:"description"`
-	Skills       []game.Skill `json:"skills"`
-}
+type EvolutionResult = game.ClassEvolution
 
 // GenerateClassEvolution asks Ollama to create custom subclasses and skills based on stats and style.
-func (c *Client) GenerateClassEvolution(stats game.Attributes, class, race string, level int) (EvolutionResult, error) {
-	prompt := fmt.Sprintf(`Génère une sous-classe d'évolution de fantasy et 2 nouvelles compétences personnalisées en français pour un personnage de niveau %d.
-Profil de l'aventurier :
-- Race : %s
-- Classe de départ : %s
-- Statistiques actuelles : Force=%d, Agilité=%d, Intelligence=%d, Constitution=%d, Esprit=%d
+func (c *Client) GenerateClassEvolution(stats game.Attributes, class, race string, level int, existingSkills []string) (EvolutionResult, error) {
+	known := strings.Join(existingSkills, ", ")
+	if known == "" {
+		known = "(aucune)"
+	}
+	statLabel, theme := game.DominantStatTheme(stats)
+	minPow := 14 + level*2
 
-Détermine la statistique dominante et compose une classe hybride ou spécialisée.
-Renvoie UNIQUEMENT un objet JSON valide correspondant exactement à ce schéma :
+	prompt := fmt.Sprintf(`%s
+
+Tu es l'arbitre d'évolution de Kenoma. Conçois UNE sous-classe et EXACTEMENT 2 compétences NOUVELLES.
+
+Perso niv.%d | Race: %s | Classe actuelle: %s
+Stats: FOR=%d AGI=%d INT=%d CON=%d ESP=%d
+Axe dominant: %s (%s)
+Compétences déjà connues (INTERDIT de les recopier): %s
+
+%s
+
+Règles strictes:
+- new_class_name: sous-classe FR immersive (prolonge "%s", ancrée Aéthel/Vide/factions/régions).
+- description: 1-2 phrases narratives Kenoma.
+- skills: EXACTEMENT 2 entrées, noms distincts des compétences déjà connues.
+- Chaque skill: description immersive (pas un label mécanique seul), type attack|heal|defense,
+  effect (id catalogue), flavor, duration (0 si instantané), cost 6-18, power ≈ %d (niveau %d).
+- Cohérence avec l'axe dominant; une skill offensive, l'autre soutien/défense ou contrôle.
+
+JSON UNIQUEMENT:
 {
-  "new_class_name": "Nom de la sous-classe (en français, ex: Mage-Lame d'Émeraude)",
-  "description": "Une description courte et immersive en français (1 ou 2 phrases) justifiant cette évolution basée sur ses statistiques et son style.",
+  "new_class_name": "Veilleur d'Aurelia-Secundus",
+  "description": "Une phrase immersive.",
   "skills": [
-    {
-      "name": "Nom compétence 1 (en français, ex: Frappe Pyromane)",
-      "description": "Effet en français (ex: Enflamme votre arme et inflige 22 dégâts)",
-      "cost": integer (coût en mana, ex: 10-25),
-      "power": integer (valeur numérique d'efficacité/dégâts ex: 15-50),
-      "type": "attack (ou 'defense' ou 'heal')"
-    },
-    {
-      "name": "Nom compétence 2 (en français)",
-      "description": "Effet en français",
-      "cost": integer,
-      "power": integer,
-      "type": "attack"
-    }
+    {"name":"...","description":"...","cost":10,"power":%d,"type":"attack","effect":"DAMAGE_DIRECT","flavor":"physical","duration":0},
+    {"name":"...","description":"...","cost":12,"power":%d,"type":"defense","effect":"SHIELD","flavor":"arcane","duration":0}
   ]
-}
+}`,
+		game.KenomaUniversePrompt(),
+		level, race, class,
+		stats.STR, stats.AGI, stats.INT, stats.CON, stats.SPI,
+		statLabel, theme, known,
+		game.EffectCatalogForPrompt(),
+		class, minPow, level, minPow, minPow,
+	)
 
-Règles strictes :
-1. Aucun texte en dehors du JSON.
-2. Le JSON doit être valide et parsable.
-3. Toutes les clés ci-dessus doivent être présentes.`, level, race, class, stats.STR, stats.AGI, stats.INT, stats.CON, stats.SPI)
-
-	respBody, err := c.requestOllama(prompt)
+	respBody, err := c.requestOllamaWithOptions(prompt, map[string]interface{}{
+		"temperature":    0.45,
+		"num_predict":    700,
+		"num_ctx":        4096,
+		"repeat_penalty": 1.1,
+	})
 	if err != nil {
 		return EvolutionResult{}, err
 	}
@@ -392,9 +275,12 @@ Règles strictes :
 	if evo.NewClassName == "" {
 		evo.NewClassName = fmt.Sprintf("%s d'Élite", class)
 	}
+	evo.Skills = game.NormalizeEvolvedSkills(evo.Skills, level)
 	if len(evo.Skills) == 0 {
-		evo.Skills = []game.Skill{
-			{Name: "Éveil de Force", Description: "Une bénédiction renforçant la puissance offensive.", Cost: 10, Power: 20, Type: "attack"},
+		fallback := game.BuildHeuristicEvolution(stats, class, race, level, existingSkills)
+		evo.Skills = fallback.Skills
+		if evo.Description == "" {
+			evo.Description = fallback.Description
 		}
 	}
 
@@ -402,11 +288,19 @@ Règles strictes :
 }
 
 func (c *Client) requestOllama(prompt string) (string, error) {
+	return c.requestOllamaWithOptions(prompt, map[string]interface{}{
+		"temperature": 0.4,
+		"num_predict": 400,
+	})
+}
+
+func (c *Client) requestOllamaWithOptions(prompt string, options map[string]interface{}) (string, error) {
 	reqData := ollamaRequest{
-		Model:  c.Model,
-		Prompt: prompt,
-		Format: "json",
-		Stream: false,
+		Model:   c.Model,
+		Prompt:  prompt,
+		Format:  "json",
+		Stream:  false,
+		Options: options,
 	}
 
 	jsonBytes, err := json.Marshal(reqData)

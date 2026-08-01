@@ -1,12 +1,53 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useWebSocket } from './hooks/useWebSocket';
 import { ConsoleLog } from './components/ConsoleLog';
 import { StatsPanel } from './components/StatsPanel';
 import { RoomPanel } from './components/RoomPanel';
 import { CommandInput } from './components/CommandInput';
+import { CombatModal } from './components/CombatModal';
+import { WorldMapModal } from './components/WorldMapModal';
+import { EquipmentModal } from './components/EquipmentModal';
+import { ShopModal } from './components/ShopModal';
+import { PartyModal } from './components/PartyModal';
+import { isCombatFeedLine } from './utils/combatLog';
 import { Shield, Sparkles, Wand2, Swords, Compass, Dices, AlertTriangle, Key, User, ArrowRight, UserPlus } from 'lucide-react';
 
 const WEBSOCKET_URL = `ws://${window.location.hostname}:8080/ws`;
+const AUTH_STORAGE_KEY = 'kenoma_auth';
+
+function loadSavedAuth() {
+  try {
+    const raw = localStorage.getItem(AUTH_STORAGE_KEY);
+    if (!raw) return null;
+    const data = JSON.parse(raw);
+    if (data?.username && data?.password) return data;
+  } catch {
+    /* ignore */
+  }
+  return null;
+}
+
+function saveAuth(username, password) {
+  localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({ username, password }));
+}
+
+function clearSavedAuth() {
+  localStorage.removeItem(AUTH_STORAGE_KEY);
+}
+
+const COMBAT_LOG_TYPES = new Set(['combat_out', 'combat_in', 'spell_damage', 'spell_heal']);
+
+function buildFoes(room, selfName) {
+  if (!room) return [];
+  const npcs = (room.npcs || [])
+    .filter((n) => n && n.name)
+    .map((n) => ({ kind: 'npc', name: n.name, hp: n.hp, max_hp: n.max_hp, rarity: n.rarity }));
+  const players = (room.players || [])
+    .map((p) => (typeof p === 'string' ? { name: p } : p))
+    .filter((p) => p?.name && p.name !== selfName && !p.ally)
+    .map((p) => ({ kind: 'player', name: p.name, hp: p.hp, max_hp: p.max_hp, class: p.class }));
+  return [...npcs, ...players];
+}
 
 export default function App() {
   const { status, send, addListener } = useWebSocket(WEBSOCKET_URL);
@@ -26,23 +67,103 @@ export default function App() {
 
   // Character creator states
   const [charName, setCharName] = useState('');
-  const [customRace, setCustomRace] = useState('Humain');
-  const [customClass, setCustomClass] = useState('Guerrier');
+  const [customRace, setCustomRace] = useState('Aurelien');
+  const [customClass, setCustomClass] = useState('Paladin Solaire');
   const [customSkills, setCustomSkills] = useState([
-    'Boule de Feu',
-    'Barrière Astrale',
-    'Soin Sacré',
-    'Frappe Critique'
+    'Lance d\'Aéthel',
+    'Barrière de Cristal',
+    'Soin de l\'Aube',
+    'Faille Mineure',
   ]);
   
   // Rolling dice states
   const [isRolling, setIsRolling] = useState(false);
   const [rollingItems, setRollingItems] = useState([]);
+  const [selectedTarget, setSelectedTarget] = useState(null);
+  const [toast, setToast] = useState('');
+  const [combatOpen, setCombatOpen] = useState(false);
+  const [mapOpen, setMapOpen] = useState(false);
+  const [equipOpen, setEquipOpen] = useState(false);
+  const [shopOpen, setShopOpen] = useState(false);
+  const [shopState, setShopState] = useState(null);
+  const [partyOpen, setPartyOpen] = useState(false);
+  const [party, setParty] = useState(null);
+  const autoLoginAttempted = useRef(false);
+  const playerRef = useRef(null);
+  playerRef.current = player;
+
+  useEffect(() => {
+    let timer;
+    const onToast = (ev) => {
+      setToast(ev.detail || '');
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => setToast(''), 2800);
+    };
+    window.addEventListener('mud-toast', onToast);
+    return () => {
+      window.removeEventListener('mud-toast', onToast);
+      window.clearTimeout(timer);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (status === 'disconnected') {
+      autoLoginAttempted.current = false;
+    }
+  }, [status]);
+
+  useEffect(() => {
+    if (status !== 'connected' || isAuthenticated || autoLoginAttempted.current) return;
+    const saved = loadSavedAuth();
+    if (!saved) return;
+    autoLoginAttempted.current = true;
+    setAuthUsername(saved.username);
+    setAuthPassword(saved.password);
+    setAuthLoading(true);
+    send('login', {
+      username: saved.username,
+      password: saved.password,
+    });
+  }, [status, isAuthenticated, send]);
+
+  // Clear target when leaving the room or when target disappears
+  useEffect(() => {
+    if (!selectedTarget || !room) return;
+    if (selectedTarget.kind === 'npc') {
+      const stillThere = (room.npcs || []).some((n) => n.name === selectedTarget.name);
+      if (!stillThere) setSelectedTarget(null);
+    } else if (selectedTarget.kind === 'player') {
+      const stillThere = (room.players || []).some((p) => {
+        const name = typeof p === 'string' ? p : p.name;
+        return name === selectedTarget.name;
+      });
+      if (!stillThere) setSelectedTarget(null);
+    }
+  }, [room, selectedTarget]);
 
   // Helper to add local client logs
   const addLog = (text, type = 'system') => {
     const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     setLogs((prev) => [...prev, { timestamp, text, type }]);
+  };
+
+  const looksLikeAccidentalSay = (text, type, selfName) => {
+    if (type !== 'chat' || !selfName || !text) return false;
+    const prefix = `${selfName} dit : "`;
+    if (!text.startsWith(prefix) || !text.endsWith('"')) return false;
+    const said = text.slice(prefix.length, -1).trim().toLowerCase();
+    const verb = said.split(/\s+/)[0];
+    return [
+      'equip', 'equiper', 'équiper', 'unequip', 'desequiper', 'déséquiper',
+      'utiliser', 'use', 'boire', 'allocate', 'attribuer', 'prendre', 'take',
+      'attack', 'attaquer', 'kill', 'frappe', 'vif', 'parer', 'fuir',
+      'north', 'south', 'east', 'west', 'nord', 'sud', 'est', 'ouest',
+      'n', 's', 'e', 'w', 'look', 'regarder', 'evoluer', 'carte', 'map',
+      'boutique', 'shop', 'marché', 'marche', 'market', 'acheter', 'buy', 'vendre', 'sell',
+      'repos', 'rest', 'dormir', 'auberge',
+      'inviter', 'invite', 'accepter', 'accept', 'refuser', 'groupe', 'equipe', 'équipe', 'party',
+      'donner', 'give', 'donneror', 'donnerobjet',
+    ].includes(verb);
   };
 
   useEffect(() => {
@@ -52,6 +173,19 @@ export default function App() {
         case 'auth_prompt':
           setIsAuthenticated(false);
           setAuthLoading(false);
+          if (!autoLoginAttempted.current) {
+            const saved = loadSavedAuth();
+            if (saved) {
+              autoLoginAttempted.current = true;
+              setAuthUsername(saved.username);
+              setAuthPassword(saved.password);
+              setAuthLoading(true);
+              send('login', {
+                username: saved.username,
+                password: saved.password,
+              });
+            }
+          }
           break;
         case 'auth_success':
           setIsAuthenticated(true);
@@ -67,6 +201,8 @@ export default function App() {
         case 'auth_failure':
           setAuthLoading(false);
           setAuthError(msg.payload || "Échec de l'authentification");
+          clearSavedAuth();
+          autoLoginAttempted.current = false;
           break;
         case 'class_selection':
           setShowClassSelection(true);
@@ -82,6 +218,26 @@ export default function App() {
         case 'room_update':
           setRoom(msg.payload);
           break;
+        case 'shop_update':
+          setShopState(msg.payload);
+          setShopOpen(true);
+          break;
+        case 'party_update':
+          setParty(msg.payload);
+          break;
+        case 'party_invite':
+          setParty((prev) => ({
+            ...(prev || {}),
+            invite: {
+              from_id: msg.payload?.from_id,
+              from_name: msg.payload?.from_name,
+            },
+          }));
+          setPartyOpen(true);
+          window.dispatchEvent(new CustomEvent('mud-toast', {
+            detail: `${msg.payload?.from_name || 'Quelqu\'un'} vous invite dans son équipe`,
+          }));
+          break;
         case 'generation_loading':
           setIsGenerating(!!msg.payload);
           break;
@@ -91,7 +247,60 @@ export default function App() {
         case 'log':
           if (msg.payload) {
             const { text, type } = msg.payload;
+            if (looksLikeAccidentalSay(text, type, playerRef.current?.name)) {
+              break;
+            }
+            // Confirmations d'équipement → toast, pas le journal
+            if (
+              typeof text === 'string' &&
+              (
+                (type === 'loot' && text.startsWith('Vous équipez')) ||
+                (type === 'system' && (text === 'Arme rangée.' || text === 'Armure retirée.' || text.startsWith('Vous rangez')))
+              )
+            ) {
+              window.dispatchEvent(new CustomEvent('mud-toast', { detail: text }));
+              break;
+            }
             addLog(text, type);
+            if (COMBAT_LOG_TYPES.has(type)) {
+              setCombatOpen(true);
+            }
+            // Optimistic NPC HP from combat lines — stays in sync even if room_update lags
+            if (typeof text === 'string' && (type === 'combat_out' || type === 'spell_damage')) {
+              const m = text.match(/\(([-+]?\d+)\s*\/\s*(\d+)\s*HP\)\s*\.?$/i);
+              if (m) {
+                const hp = Math.max(0, parseInt(m[1], 10));
+                const maxHp = parseInt(m[2], 10);
+                // Prefer "à NAME (hp/max)" or "sur NAME : dmg (hp/max)"
+                let npcName = null;
+                const a = text.match(/\sà\s+(.+?)\s+\(\d+\s*\/\s*\d+\s*HP\)/i);
+                const b = text.match(/\ssur\s+(.+?)\s*:\s*\d+\s+dégâts\s+\(\d+\s*\/\s*\d+\s*HP\)/i);
+                const c = text.match(/\ssur\s+(.+?)\s+pour\s+\d+\s+dégâts\s+\(\d+\s*\/\s*\d+\s*HP\)/i);
+                npcName = (a || b || c)?.[1]?.trim();
+                if (npcName) {
+                  setRoom((prev) => {
+                    if (!prev?.npcs) return prev;
+                    const npcs = prev.npcs.map((n) =>
+                      n.name === npcName ? { ...n, hp, max_hp: maxHp || n.max_hp } : n,
+                    );
+                    return { ...prev, npcs };
+                  });
+                }
+              }
+            }
+          }
+          break;
+        case 'pvp_alert':
+          if (msg.payload) {
+            const { attacker, damage, move } = msg.payload;
+            const label = move || 'attaque';
+            window.dispatchEvent(new CustomEvent('mud-toast', {
+              detail: `${attacker || 'Quelqu\'un'} vous assaille (${label}) — ${damage ?? '?'} dégâts`,
+            }));
+            setCombatOpen(true);
+            if (attacker) {
+              setSelectedTarget({ kind: 'player', name: attacker });
+            }
           }
           break;
         case 'error':
@@ -188,10 +397,94 @@ export default function App() {
     setTimeout(resolveNextItem, 600);
   };
 
-  const handleSendCommand = (cmd) => {
-    addLog(`> ${cmd}`, 'input');
+  const handleSendCommand = (cmd, options = {}) => {
+    const silent = options === true || options?.silent === true;
+    if (!silent) {
+      addLog(`> ${cmd}`, 'input');
+    }
+    const lower = cmd.trim().toLowerCase();
+    if (lower === 'carte' || lower === 'map' || lower === 'monde') {
+      setMapOpen(true);
+    }
+    if (
+      lower === 'boutique' || lower === 'shop' || lower === 'magasin' ||
+      lower === 'marché' || lower === 'marche' || lower === 'market'
+    ) {
+      setShopOpen(true);
+    }
+    if (lower === 'groupe' || lower === 'equipe' || lower === 'équipe' || lower === 'party') {
+      setPartyOpen(true);
+    }
+    if (
+      lower.startsWith('attack ') ||
+      lower.startsWith('attaquer ') ||
+      lower.startsWith('kill ') ||
+      lower === 'a' ||
+      lower.startsWith('a ')
+    ) {
+      setCombatOpen(true);
+    }
     send('command', cmd);
   };
+
+  /** UI actions (equip, move, skills…) — no console echo. */
+  const handleSilentCommand = (cmd) => handleSendCommand(cmd, { silent: true });
+
+  const handleEquipItem = (itemOrQuery) => {
+    if (!itemOrQuery) return;
+    if (typeof itemOrQuery === 'string') {
+      send('equip', itemOrQuery);
+      return;
+    }
+    send('equip', {
+      id: itemOrQuery.id || '',
+      name: itemOrQuery.name || '',
+    });
+  };
+
+  const handleUnequipSlot = (slot) => {
+    send('unequip', slot);
+  };
+
+  const openShop = () => {
+    setShopOpen(true);
+    send('shop', {});
+  };
+
+  const handleShopBuy = (id) => {
+    if (!id) return;
+    send('buy', { id });
+  };
+
+  const handleShopSell = (id, name) => {
+    send('sell', { id: id || '', name: name || '' });
+  };
+
+  const doRest = () => {
+    handleSilentCommand('repos');
+  };
+
+  const openParty = () => {
+    setPartyOpen(true);
+    handleSilentCommand('groupe');
+  };
+
+  const invitePlayer = (name) => {
+    if (!name) return;
+    handleSilentCommand(`inviter ${name}`);
+    setPartyOpen(true);
+  };
+
+  const selectTargetOnly = (target) => {
+    if (!target?.name) {
+      setSelectedTarget(null);
+      return;
+    }
+    setSelectedTarget(target);
+  };
+
+  const foes = buildFoes(room, player?.name);
+  const recentCombatLogs = logs.filter(isCombatFeedLine).slice(-10);
 
   const handleAuthSubmit = (e) => {
     e.preventDefault();
@@ -199,7 +492,7 @@ export default function App() {
 
     setAuthLoading(true);
     setAuthError('');
-    
+    saveAuth(authUsername.trim(), authPassword);
     send(authTab, {
       username: authUsername,
       password: authPassword
@@ -252,10 +545,10 @@ export default function App() {
         <div className="max-w-md w-full text-center space-y-6 pt-4 pb-8">
           <div className="space-y-1">
             <h1 className="text-2xl font-extrabold uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-cyan)] via-[var(--color-purple)] to-[#ec4899] drop-shadow-[0_0_12px_var(--color-purple-glow)]">
-              Antigravity MUD
+              Kenoma
             </h1>
             <p className="text-[9px] text-[var(--color-muted)] uppercase tracking-wider font-bold">
-              Portail d'Aventure RPG & MMORPG
+              Le Monde-Frontière — 1247 A.F.
             </p>
           </div>
 
@@ -408,16 +701,16 @@ export default function App() {
         <div className="max-w-2xl w-full text-center space-y-6 pt-4 pb-8">
           <div className="space-y-1">
             <h1 className="text-2xl font-extrabold uppercase tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-cyan)] via-[var(--color-purple)] to-[#ec4899] drop-shadow-[0_0_12px_var(--color-purple-glow)]">
-              Antigravity MUD D&D
+              Kenoma — Création
             </h1>
             <p className="text-[10px] text-[var(--color-muted)] uppercase tracking-widest">
-              L'IA évalue les raretés et gère les dés de vos classes libres
+              Monde-Frontière · Aéthel contre Vide · 1247 A.F.
             </p>
           </div>
 
           <form onSubmit={handleCreateCharacterSubmit} className="space-y-6 glass-panel border border-[var(--border-color)] p-6 bg-[rgba(0,0,0,0.3)]">
             <h2 className="text-sm font-bold text-white uppercase border-b border-[rgba(255,255,255,0.05)] pb-2 block mb-4">
-              Créateur d'Aventurier
+              Créateur d&apos;Aventurier de Kenoma
             </h2>
 
             <div className="space-y-4 text-left">
@@ -512,6 +805,83 @@ export default function App() {
 
   return (
     <div className="app-grid">
+      {toast && (
+        <div
+          style={{
+            position: 'fixed',
+            bottom: 88,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 70,
+            padding: '8px 14px',
+            borderRadius: 8,
+            border: '1px solid rgba(139,92,246,0.45)',
+            background: 'rgba(8,10,16,0.95)',
+            color: '#e2e8f0',
+            fontSize: 12,
+            fontFamily: 'Fira Code, monospace',
+            pointerEvents: 'none',
+          }}
+        >
+          {toast}
+        </div>
+      )}
+
+      <CombatModal
+        open={combatOpen}
+        player={player}
+        foes={foes}
+        selectedTarget={selectedTarget}
+        onSelectTarget={selectTargetOnly}
+        onSendCommand={handleSilentCommand}
+        onClose={() => setCombatOpen(false)}
+        recentLogs={recentCombatLogs}
+        skills={player?.skills}
+      />
+
+      <WorldMapModal
+        open={mapOpen}
+        onClose={() => setMapOpen(false)}
+        currentRoomId={room?.id}
+        onTravel={(dir) => {
+          handleSilentCommand(dir);
+        }}
+        onOpenShop={() => openShop()}
+        onRest={doRest}
+      />
+
+      <EquipmentModal
+        open={equipOpen}
+        onClose={() => setEquipOpen(false)}
+        player={player}
+        onSendCommand={handleSilentCommand}
+        onEquipItem={handleEquipItem}
+        onUnequipSlot={handleUnequipSlot}
+      />
+
+      <ShopModal
+        open={shopOpen}
+        onClose={() => setShopOpen(false)}
+        shopState={shopState}
+        onBuy={handleShopBuy}
+        onSell={handleShopSell}
+      />
+
+      <PartyModal
+        open={partyOpen}
+        onClose={() => setPartyOpen(false)}
+        party={party}
+        player={player}
+        inviteName={selectedTarget?.kind === 'player' ? selectedTarget.name : null}
+        onInvite={(name) => invitePlayer(name)}
+        onAccept={() => handleSilentCommand('accepter')}
+        onRefuse={() => handleSilentCommand('refuser')}
+        onLeave={() => handleSilentCommand('quitterequipe')}
+        onKick={(name) => handleSilentCommand(`exclure ${name}`)}
+        onGiftGold={(name, amount) => handleSilentCommand(`donner or ${name} ${amount}`)}
+        onGiftItem={(name, itemRef) => handleSilentCommand(`donner objet ${name} ${itemRef}`)}
+      />
+
       {/* Narrative Console */}
       <div className="h-full min-h-0 overflow-hidden">
         <ConsoleLog logs={logs} />
@@ -520,10 +890,27 @@ export default function App() {
       {/* Sidebar Panel: Room info + Player stats */}
       <div className="flex flex-col gap-2 h-full min-h-0 overflow-hidden">
         <div className="flex-1 min-h-0 overflow-hidden">
-          <RoomPanel room={room} onSendCommand={handleSendCommand} />
+          <RoomPanel
+            room={room}
+            onSendCommand={handleSilentCommand}
+            selectedTarget={selectedTarget}
+            onSelectTarget={selectTargetOnly}
+            selfName={player?.name}
+            onEngageCombat={() => setCombatOpen(true)}
+            onOpenMap={() => setMapOpen(true)}
+            onOpenShop={openShop}
+            onRest={doRest}
+            onInvitePlayer={invitePlayer}
+          />
         </div>
         <div className="flex-1 min-h-0 overflow-hidden">
-          <StatsPanel player={player} onSendCommand={handleSendCommand} />
+          <StatsPanel
+            player={player}
+            onSendCommand={handleSilentCommand}
+            onEquipItem={handleEquipItem}
+            onUnequipSlot={handleUnequipSlot}
+            onOpenEquipment={() => setEquipOpen(true)}
+          />
         </div>
       </div>
 
@@ -531,8 +918,14 @@ export default function App() {
       <div className="col-span-2 shrink-0 min-h-0">
         <CommandInput
           onSendCommand={handleSendCommand}
+          onSilentCommand={handleSilentCommand}
           skills={player?.skills}
           isGenerating={isGenerating}
+          selectedTarget={selectedTarget}
+          foes={foes}
+          onSelectTarget={selectTargetOnly}
+          onEngageCombat={() => setCombatOpen(true)}
+          onOpenParty={openParty}
         />
       </div>
     </div>

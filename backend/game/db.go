@@ -22,6 +22,7 @@ type Account struct {
 // Database manages JSON file-based persistence for accounts.
 type Database struct {
 	Accounts map[string]*Account `json:"accounts"`
+	Market   []MarketListing     `json:"market,omitempty"`
 	FilePath string              `json:"-"`
 	mu       sync.Mutex          `json:"-"`
 }
@@ -180,6 +181,8 @@ func (db *Database) SavePlayer(p *Player) {
 		ClassMultipliers: p.ClassMultipliers,
 		StatPoints:       p.StatPoints,
 		Inventory:        append([]Item{}, p.Inventory...),
+		EquippedWeapon:   p.EquippedWeapon,
+		EquippedArmor:    p.EquippedArmor,
 		Skills:           append([]Skill{}, p.Skills...),
 		RoomID:           p.RoomID,
 		EvolutionHistory: append([]EvolutionHistory{}, p.EvolutionHistory...),
@@ -197,4 +200,28 @@ func (db *Database) SavePlayer(p *Player) {
 			os.WriteFile(db.FilePath, bytes, 0644)
 		}
 	}()
+}
+
+// LoadMarket returns a copy of persisted market listings.
+func (db *Database) LoadMarket() []MarketListing {
+	db.mu.Lock()
+	defer db.mu.Unlock()
+	out := make([]MarketListing, len(db.Market))
+	copy(out, db.Market)
+	return out
+}
+
+// SaveMarket replaces market listings and persists the database.
+func (db *Database) SaveMarket(listings []MarketListing) {
+	db.mu.Lock()
+	db.Market = append([]MarketListing{}, listings...)
+	bytes, err := json.MarshalIndent(db, "", "  ")
+	db.mu.Unlock()
+	if err != nil {
+		log.Printf("Error marshaling market: %v", err)
+		return
+	}
+	if err := os.WriteFile(db.FilePath, bytes, 0644); err != nil {
+		log.Printf("Error saving market: %v", err)
+	}
 }

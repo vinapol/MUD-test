@@ -24,10 +24,13 @@ type LLMSkillJSON struct {
 	Description   string `json:"description"`
 	Cost          int    `json:"cost"`
 	Power         int    `json:"power"`
-	Type          string `json:"type"` // "attack", "heal", "defense"
-	Rarity        string `json:"rarity"` // "common", "rare", "epic", "legendary", "unique"
-	DiceType      string `json:"dice_type"` // "d20", "d100"
+	Type          string `json:"type"`
+	Rarity        string `json:"rarity"`
+	DiceType      string `json:"dice_type"`
 	RollThreshold int    `json:"roll_threshold"`
+	Effect        string `json:"effect"`
+	Flavor        string `json:"flavor"`
+	Duration      int    `json:"duration"`
 }
 
 // LLMClassJSON maps the incoming class JSON structure from Ollama.
@@ -67,6 +70,11 @@ func (p *Player) RecalculateStats() {
 	p.TotalStats.INT = int(float64(rawINT) * p.ClassMultipliers.INT * p.Race.Multipliers.INT)
 	p.TotalStats.CON = int(float64(rawCON) * p.ClassMultipliers.CON * p.Race.MicroConMult())
 	p.TotalStats.SPI = int(float64(rawSPI) * p.ClassMultipliers.SPI * p.Race.Multipliers.SPI)
+
+	// Equipment flat bonuses (weapon → STR, armor → CON)
+	strGear, conGear := p.equipmentBonusesLocked()
+	p.TotalStats.STR += strGear
+	p.TotalStats.CON += conGear
 
 	// Ensure stats don't drop below 1
 	if p.TotalStats.STR < 1 { p.TotalStats.STR = 1 }
@@ -133,7 +141,7 @@ func (e *Engine) InitCharacter(player *Player, name, class string, race Race) {
 	player.EvolutionHistory = []EvolutionHistory{}
 	player.Mu.Unlock()
 
-	// Calculate total stats
+	player.EnsureDefaultEquipment()
 	player.RecalculateStats()
 
 	// Add player to the town square
@@ -207,113 +215,49 @@ func (e *Engine) HandleCreateCharacter(player *Player, payload CreateCharacterPa
 	go func() {
 		defer player.SendMessage("generation_loading", false)
 
-		var concept LLMConceptJSON
+		concept := BuildHeuristicConcept(customClass, customRace, payload.CustomSkills)
+		usedLLM := false
 
-		// Generate race, class and 4 skills combined from Ollama
 		if e.GenerateCharacterConcept != nil {
+			player.SendMessage("log", map[string]string{
+				"text": "L'arbitre IA évalue rareté, descriptions et dés de votre classe/compétences...",
+				"type": "system",
+			})
 			res, errCall := e.GenerateCharacterConcept(customClass, customRace, payload.CustomSkills)
 			if errCall != nil {
-				log.Printf("LLM Character Concept generation failed: %v", errCall)
-				
-				// Creator account bypass on Ollama failures
-				if player.ID == "vinapol" {
-					creatorSkills := []LLMSkillJSON{}
-					for i, sname := range payload.CustomSkills {
-						if sname == "" {
-							sname = fmt.Sprintf("Sort Créateur %d", i+1)
-						}
-						stype := "attack"
-						snameLower := strings.ToLower(sname)
-						if strings.Contains(snameLower, "soin") || strings.Contains(snameLower, "heal") || strings.Contains(snameLower, "vie") {
-							stype = "heal"
-						} else if strings.Contains(snameLower, "bouclier") || strings.Contains(snameLower, "parade") || strings.Contains(snameLower, "defense") || strings.Contains(snameLower, "mur") {
-							stype = "defense"
-						}
-						creatorSkills = append(creatorSkills, LLMSkillJSON{
-							Name:          sname,
-							Description:   "Sort unique insufflé par le Concepteur.",
-							Cost:          4,
-							Power:         25,
-							Type:          stype,
-							Rarity:        "unique",
-							DiceType:      "d100",
-							RollThreshold: 0,
-						})
-					}
-
-					concept = LLMConceptJSON{
-						Race: Race{
-							Name:        customRace,
-							Description: "Race divine forgée par le Concepteur.",
-							Modifiers:   Attributes{STR: 5, AGI: 5, INT: 5, CON: 5, SPI: 5},
-							Multipliers: StatMultipliers{STR: 1.5, AGI: 1.5, INT: 1.5, CON: 1.5, SPI: 1.5},
-							PassiveName: "Volonté Créatrice",
-							PassiveDesc: "Régénération divine accrue.",
-						},
-						Class: LLMClassJSON{
-							Name:          customClass,
-							Description:   "Classe transcendée par le Concepteur.",
-							Rarity:        "unique",
-							DiceType:      "d100",
-							RollThreshold: 0,
-							BaseStats:     Attributes{STR: 18, AGI: 18, INT: 18, CON: 18, SPI: 18},
-							Multipliers:   StatMultipliers{STR: 1.5, AGI: 1.5, INT: 1.5, CON: 1.5, SPI: 1.5},
-							Skills:        creatorSkills,
-							Inventory: []Item{
-								{Name: "Épée du Concepteur", Type: "weapon", Power: 25, Description: "Forgée dans le code source.", Value: 1000, Rarity: "unique"},
-								{Name: "Armure Céleste", Type: "armor", Power: 20, Description: "Tissée de fils de lumière divine.", Value: 1000, Rarity: "unique"},
-							},
-						},
-					}
-				} else {
-					concept = LLMConceptJSON{
-						Race: DefaultHumanRace(),
-						Class: LLMClassJSON{
-							Name:          "Guerrier Recrue",
-							Description:   "Un combattant standard.",
-							Rarity:        "common",
-							DiceType:      "d20",
-							RollThreshold: 0,
-							BaseStats:     Attributes{STR: 12, AGI: 8, INT: 5, CON: 13, SPI: 7},
-							Multipliers:   StatMultipliers{STR: 1.35, CON: 1.25},
-							Skills: []LLMSkillJSON{
-								{Name: "Attaque Rapide", Description: "Un coup physique agile.", Cost: 0, Power: 12, Type: "attack", Rarity: "common", DiceType: "d20", RollThreshold: 0},
-								{Name: "Parade", Description: "Réduit les prochains dégâts reçus.", Cost: 4, Power: 8, Type: "defense", Rarity: "common", DiceType: "d20", RollThreshold: 0},
-								{Name: "Soin Léger", Description: "Restaure un peu de vie.", Cost: 6, Power: 15, Type: "heal", Rarity: "common", DiceType: "d20", RollThreshold: 0},
-								{Name: "Trait Magique", Description: "Projette une flèche d'énergie.", Cost: 5, Power: 14, Type: "attack", Rarity: "common", DiceType: "d20", RollThreshold: 0},
-							},
-							Inventory: ClassTemplates["warrior"].Inventory,
-						},
-					}
-				}
+				log.Printf("LLM Character Concept failed (heuristic fallback): %v", errCall)
+				player.SendMessage("log", map[string]string{
+					"text": "L'IA n'a pas répondu à temps — évaluation locale de secours utilisée.",
+					"type": "error",
+				})
 			} else {
-				// Parse serialized response into local LLMConceptJSON
 				bytes, parseErr := json.Marshal(res)
 				if parseErr == nil {
-					json.Unmarshal(bytes, &concept)
+					var llmConcept LLMConceptJSON
+					if json.Unmarshal(bytes, &llmConcept) == nil && llmConcept.Class.Name != "" {
+						concept = llmConcept
+						usedLLM = true
+					}
 				}
 			}
-		} else {
-			// Fallback if no LLM configured
-			concept = LLMConceptJSON{
-				Race: DefaultHumanRace(),
-				Class: LLMClassJSON{
-					Name:          "Guerrier Recrue",
-					Description:   "Un combattant standard.",
-					Rarity:        "common",
-					DiceType:      "d20",
-					RollThreshold: 0,
-					BaseStats:     Attributes{STR: 12, AGI: 8, INT: 5, CON: 13, SPI: 7},
-					Multipliers:   StatMultipliers{STR: 1.35, CON: 1.25},
-					Skills: []LLMSkillJSON{
-						{Name: "Attaque Rapide", Description: "Un coup physique agile.", Cost: 0, Power: 12, Type: "attack", Rarity: "common", DiceType: "d20", RollThreshold: 0},
-						{Name: "Parade", Description: "Réduit les prochains dégâts reçus.", Cost: 4, Power: 8, Type: "defense", Rarity: "common", DiceType: "d20", RollThreshold: 0},
-						{Name: "Soin Léger", Description: "Restaure un peu de vie.", Cost: 6, Power: 15, Type: "heal", Rarity: "common", DiceType: "d20", RollThreshold: 0},
-						{Name: "Trait Magique", Description: "Projette une flèche d'énergie.", Cost: 5, Power: 14, Type: "attack", Rarity: "common", DiceType: "d20", RollThreshold: 0},
-					},
-					Inventory: ClassTemplates["warrior"].Inventory,
-				},
+		}
+
+		// Creator account: auto-succeed dice rolls, but keep LLM descriptions/rarity/dice faces
+		if player.ID == "vinapol" {
+			concept.Class.RollThreshold = 0
+			for i := range concept.Class.Skills {
+				concept.Class.Skills[i].RollThreshold = 0
 			}
+			if concept.Race.PassiveName == "" || concept.Race.PassiveName == "Persévérance" || concept.Race.PassiveName == "Adaptabilité" {
+				concept.Race.PassiveName = "Volonté Créatrice"
+				concept.Race.PassiveDesc = "Régénération divine accrue."
+			}
+		}
+
+		if usedLLM {
+			log.Printf("Character concept for %s generated via LLM (rarity=%s dice=%s thr=%d)", name, concept.Class.Rarity, concept.Class.DiceType, concept.Class.RollThreshold)
+		} else {
+			log.Printf("Character concept for %s generated via local heuristic", name)
 		}
 
 		// 1. Roll for Class
@@ -371,26 +315,40 @@ func (e *Engine) HandleCreateCharacter(player *Player, payload CreateCharacterPa
 			fallbackText := "None"
 
 			if !skillSuccess {
-				// Downgrade to common skill based on type
 				skillCost = 0
-				if s.Type == "heal" {
+				if s.Type == "heal" || s.Effect == EffectHeal {
 					skillName = "Soin Mineur"
-					skillDesc = "Restaure faiblement vos points de vie."
+					eff := MatchEffectFromText("soin", "restaure", "heal")
+					skillDesc = FormatEffectDescription("Un baume improvisé.", eff, "holy", 15, 0)
 					skillPower = 15
 					skillCost = 5
+					s.Effect = EffectHeal
+					s.Flavor = "holy"
 					fallbackText = "Soin Mineur (Common)"
-				} else if s.Type == "defense" {
+				} else if s.Type == "defense" || s.Effect == EffectShield {
 					skillName = "Bouclier de Fortune"
-					skillDesc = "Une parade basique atténuant les dégâts."
+					eff := MatchEffectFromText("bouclier", "protection", "defense")
+					skillDesc = FormatEffectDescription("Une parade basique.", eff, "physical", 8, 0)
 					skillPower = 8
 					skillCost = 4
+					s.Effect = EffectShield
+					s.Flavor = "physical"
 					fallbackText = "Bouclier de Fortune (Common)"
 				} else {
 					skillName = "Attaque Basique"
-					skillDesc = "Un coup d'arme simple."
+					eff := MatchEffectFromText("frappe", "coup", "attack")
+					skillDesc = FormatEffectDescription("Un coup d'arme simple.", eff, "physical", 10, 0)
 					skillPower = 10
+					s.Effect = EffectDamageDirect
+					s.Flavor = "physical"
 					fallbackText = "Attaque Basique (Common)"
 				}
+			}
+
+			eff, flavor := ResolveSkillEffect(skillName, skillDesc, s.Type, s.Effect, s.Flavor)
+			dur := s.Duration
+			if dur <= 0 {
+				dur = eff.Duration
 			}
 
 			resolvedSkills = append(resolvedSkills, Skill{
@@ -398,7 +356,11 @@ func (e *Engine) HandleCreateCharacter(player *Player, payload CreateCharacterPa
 				Description: skillDesc,
 				Cost:        skillCost,
 				Power:       skillPower,
-				Type:        s.Type,
+				Type:        CategoryFromEffect(eff.ID),
+				Effect:      eff.ID,
+				EffectLabel: eff.LabelFR,
+				Flavor:      flavor,
+				Duration:    dur,
 			})
 
 			skillsRollsPayload = append(skillsRollsPayload, map[string]interface{}{
@@ -458,6 +420,7 @@ func (e *Engine) HandleCreateCharacter(player *Player, payload CreateCharacterPa
 		}
 		player.Mu.Unlock()
 
+		player.EnsureDefaultEquipment()
 		player.RecalculateStats()
 
 		// Add to town square
@@ -502,12 +465,12 @@ func (e *Engine) HandleCreateCharacter(player *Player, payload CreateCharacterPa
 		}
 
 		player.SendMessage("log", map[string]string{
-			"text": fmt.Sprintf("L'IA a généré votre race : **%s** (%s). Passif : **%s** - %s.", concept.Race.Name, concept.Race.Description, concept.Race.PassiveName, concept.Race.PassiveDesc),
+			"text": fmt.Sprintf("Votre race : **%s** (%s). Passif : **%s** - %s.", concept.Race.Name, concept.Race.Description, concept.Race.PassiveName, concept.Race.PassiveDesc),
 			"type": "level_up",
 		})
 
 		player.SendMessage("log", map[string]string{
-			"text": fmt.Sprintf("Bienvenue %s ! Vous commencez votre aventure en tant que %s de race %s.", player.Name, player.Class, player.Race.Name),
+			"text": fmt.Sprintf("Bienvenue à Kenoma, %s. Vous êtes %s (%s), à Caelum-Vana — 1247 A.F. Tapez « carte » ou « lore ».", player.Name, player.Class, player.Race.Name),
 			"type": "system",
 		})
 
