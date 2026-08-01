@@ -241,7 +241,6 @@ func (e *Engine) BroadcastRoomState(roomID string) {
 	}
 
 	room.Mu.Lock()
-	defer room.Mu.Unlock()
 
 	// Get player names
 	playersInRoom := []string{}
@@ -277,18 +276,53 @@ func (e *Engine) BroadcastRoomState(roomID string) {
 		})
 	}
 
+	// Copy exits map and player IDs for early unlock safety
+	exits := make(map[string]string)
+	for k, v := range room.Exits {
+		exits[k] = v
+	}
+
+	roomPlayers := make([]string, 0, len(room.Players))
+	for pid := range room.Players {
+		roomPlayers = append(roomPlayers, pid)
+	}
+	room.Mu.Unlock() // Unlock main room mutex early
+
+	// Look up players in adjacent rooms connected by exits
+	nearbyPlayers := map[string][]string{}
+	e.Mu.RLock()
+	for dir, targetRoomID := range exits {
+		if targetRoomID != "" {
+			if targetRoom, exists := e.Rooms[targetRoomID]; exists {
+				targetRoom.Mu.Lock()
+				names := []string{}
+				for pid := range targetRoom.Players {
+					if p, ok := e.Players[pid]; ok {
+						names = append(names, p.Name)
+					}
+				}
+				targetRoom.Mu.Unlock()
+				if len(names) > 0 {
+					nearbyPlayers[dir] = names
+				}
+			}
+		}
+	}
+	e.Mu.RUnlock()
+
 	roomState := map[string]interface{}{
-		"id":          room.ID,
-		"name":        room.Name,
-		"description": room.Description,
-		"exits":       room.Exits,
-		"players":     playersInRoom,
-		"items":       items,
-		"npcs":        npcs,
+		"id":             room.ID,
+		"name":           room.Name,
+		"description":    room.Description,
+		"exits":          exits,
+		"players":        playersInRoom,
+		"items":          items,
+		"npcs":           npcs,
+		"nearby_players": nearbyPlayers,
 	}
 
 	// Broadcast room state to everyone in this room
-	for pid := range room.Players {
+	for _, pid := range roomPlayers {
 		e.Mu.RLock()
 		p, ok := e.Players[pid]
 		e.Mu.RUnlock()

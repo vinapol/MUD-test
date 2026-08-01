@@ -129,6 +129,27 @@ export function RoomPanel({ room, onSendCommand }) {
             </div>
           )}
 
+          {/* Nearby players (adjacent rooms radar) */}
+          {room.nearby_players && Object.keys(room.nearby_players).length > 0 && (
+            <div className="space-y-1.5 border-t border-[rgba(255,255,255,0.05)] pt-2.5">
+              <span className="flex items-center gap-1.5 text-[10px] text-[var(--color-muted)] font-bold uppercase">
+                <Compass size={12} className="text-[var(--color-purple)] animate-pulse" /> Radar : Joueurs à proximité
+              </span>
+              <div className="flex flex-col gap-1 pl-1 font-mono text-[11px]">
+                {Object.entries(room.nearby_players).map(([dir, pNames]) => (
+                  <div key={dir} className="flex items-center gap-1.5 text-slate-300">
+                    <span className="text-[var(--color-purple)] font-bold uppercase w-12">
+                      [{dir.substring(0, 3)}.] :
+                    </span>
+                    <span className="text-slate-400">
+                      {pNames.join(', ')}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Monsters (NPCs) */}
           <div className="space-y-1">
             <span className="flex items-center gap-1.5 text-[10px] text-[var(--color-muted)] font-bold uppercase">

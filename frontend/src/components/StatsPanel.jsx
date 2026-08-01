@@ -44,8 +44,8 @@ export function StatsPanel({ player, onSendCommand }) {
     const raceMult = player.race?.multipliers?.[statKey] || 1.0;
     const totalMult = classMult * raceMult;
     if (totalMult === 1.0) return null;
-    const color = totalMult > 1.0 ? 'text-[var(--color-emerald)]' : 'text-[var(--color-crimson)]';
-    return <span className={`text-[10px] ml-1 font-bold ${color}`}>x{totalMult.toFixed(2)}</span>;
+    const color = totalMult > 1.0 ? 'text-[var(--color-purple)]' : 'text-[var(--color-crimson)]';
+    return <span className={`text-[9px] font-bold ${color}`}>x{totalMult.toFixed(2)}</span>;
   };
 
   const allocateStat = (stat) => {
@@ -181,10 +181,12 @@ export function StatsPanel({ player, onSendCommand }) {
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-white">
+                    <span className="text-sm font-black text-white">
                       {totalVal}
-                      {diff > 0 && <span className="text-[10px] text-[var(--color-emerald)] ml-1">+{diff}</span>}
-                      {diff < 0 && <span className="text-[10px] text-[var(--color-crimson)] ml-1">{diff}</span>}
+                    </span>
+                    <span className="text-[10px] text-[var(--color-muted)] flex items-center gap-1">
+                      {diff > 0 && <span className="text-[var(--color-emerald)] font-bold">(+{diff})</span>}
+                      {diff < 0 && <span className="text-[var(--color-crimson)] font-bold">({diff})</span>}
                       {getMultiplierLabel(stat.key)}
                     </span>
                     {player.stat_points > 0 && (

@@ -91,6 +91,8 @@ func (e *Engine) handleCommand(player *Player, commandLine string) {
 		e.executeHelp(player)
 	case "/generate", "generate":
 		e.executeGenerate(player, args)
+	case "resetchar", "recommencer":
+		e.executeResetChar(player)
 	default:
 		// Default to say if not command
 		e.executeSay(player, commandLine)
@@ -996,3 +998,37 @@ func (e *Engine) executeDevCommand(player *Player, cmd string, args string) {
 		})
 	}
 }
+
+// executeResetChar removes a character profile from database and redirects the player to creation.
+func (e *Engine) executeResetChar(player *Player) {
+	e.DB.mu.Lock()
+	acc, ok := e.DB.Accounts[player.ID]
+	if ok {
+		acc.Character = nil
+	}
+	e.DB.mu.Unlock()
+	e.DB.Save()
+
+	player.Mu.Lock()
+	oldRoomID := player.RoomID
+	player.RoomID = ""
+	player.Class = ""
+	player.ClassRarity = ""
+	player.Level = 1
+	player.XP = 0
+	player.Skills = nil
+	player.Inventory = nil
+	player.Mu.Unlock()
+
+	if oldRoomID != "" {
+		if room, exists := e.Rooms[oldRoomID]; exists {
+			room.RemovePlayer(player.ID)
+			e.BroadcastRoomState(oldRoomID)
+		}
+	}
+
+	player.SendMessage("class_selection", map[string]string{
+		"message": "Votre personnage a été réinitialisé. Veuillez en créer un nouveau.",
+	})
+}
+
